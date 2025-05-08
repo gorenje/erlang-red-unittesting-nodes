@@ -1,0 +1,34 @@
+{
+  "name": "@gregoriusrippenstein/erlang-red-unittest",
+  "version": "0.9.1",
+  "dependencies": {
+    "mustache": "^4.2.0"
+  },
+
+  "keywords": [ 
+    "node-red", 
+    "erlang-red", 
+    "unit-testing",
+    "assert-the-truth" 
+  ],
+
+  "license": "Don't do evil.",
+  "author": "Gerrit Riessen <gerrit@flowhub.org>",
+  "engines": {
+    "node": ">=14"
+  },
+
+  "node-red" : {
+    "version": ">=2.0.0",
+    "plugins": {
+      "unittesting_sidebar": "plugins/sidebar.html"
+    },
+    "nodes": {
+      "ut-assert-failure": "nodes/ut-assert-failure.js",
+      "ut-assert-values": "nodes/ut-assert-values.js",
+      "ut-assert-success": "nodes/ut-assert-success.js",
+      "ut-assert-status": "nodes/ut-assert-status.js",
+      "ut-assert-debug": "nodes/ut-assert-debug.js"
+    }
+  }
+}

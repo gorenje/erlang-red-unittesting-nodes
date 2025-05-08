@@ -1,0 +1,199 @@
+<script type="text/javascript">
+  (function(){
+  
+
+  function frontendSupportFunction() {
+  }
+
+  var functTwo = (arg) => {
+
+  };
+  
+  RED.nodes.registerType('ut-assert-status',{
+    color: '#C0DEED',
+    icon: "font-awesome/fa-window-minimize",
+    category: 'testing',
+    paletteLabel: 'Assert Status',
+    defaults: {
+      name: {
+        value:"",
+      },
+      nodeid: {
+        value: "",
+        required: true
+      },
+      content: {
+        value: "",
+      },
+      colour: {
+        value: "grey",
+        required: true
+      },
+      shape: {
+        value: "dot",
+        required: true
+      },
+      inverse: {
+        value: false,
+        required: true
+      }
+    },
+
+    inputs: 0,
+
+    outputs: 0,
+
+    label: function() {
+      if ( this.nodeid && !this.name) {
+        let nodeLabel = `[${this.nodeid}]`;
+        let node = RED.nodes.node(this.nodeid)
+        if (node) {
+          nodeLabel = RED.utils.getNodeLabel(node)
+        }
+        
+        if ( this.inverse )  {
+          return `Assert No Status for ${nodeLabel}`
+        } else {
+          return `Assert Status for ${nodeLabel}: ${this.colour} ${this.shape}`
+        }
+      } else { return (this.name || this._def.paletteLabel) }
+    },
+
+    labelStyle: function() {
+      return (this.name || this.nodeid) ? "node_label_italic" : "";
+    },
+
+    onpaletteadd: function() {
+    },
+
+    onpaletteremove: function() {
+    },
+
+    oneditprepare: function() {
+      $('#node-input-inverse').on('change', () => {
+        if ($('#node-input-inverse').is(":checked")) {
+          $('#ut-assert-status-opts-to-hide-on-inverse').fadeOut(300);
+        } else {
+          $('#ut-assert-status-opts-to-hide-on-inverse').fadeIn(300);
+        }
+      });
+
+      var dirList = $("#node-input-assert-status-target-container-div").css({
+        width: "100%",
+        height: "calc(100%)"
+      }).treeList(
+        {
+          multi: false
+        }
+      ).on('treelistselect', function (event, item) {
+        if (item && item.nodeid) {
+          RED.view.reveal(item.nodeid);
+          RED.view.select(item.nodeid);
+        }        
+      }).on('treelistconfirm', function (event, item) {
+      });
+
+      var search = $("#node-input-assert-status-target-filter").searchBox({
+        style: "compact",
+        delay: 300,
+        change: function () {
+          var val = $(this).val().trim().toLowerCase();
+          if (val === "") {
+            dirList.treeList("filter", null);
+            search.searchBox("count", "");
+          } else {
+            var count = dirList.treeList("filter", function (item) {
+              return item.label.toLowerCase().indexOf(val) > -1 || item.sublabel.toLowerCase().indexOf(val) > -1
+            });
+            search.searchBox("count", count + " / " + dirList.treeList("data").length);
+          }
+        }
+      });
+
+      let data = RED.nodes.filterNodes({ z: RED.workspaces.active() }).filter(n => n.id != this.id).map(nde => {
+        return {
+          label: RED.utils.getNodeLabel(nde),
+          icon: "",
+          nodeid: nde.id,
+          sublabel: nde.type,
+          selected: nde.id == this.nodeid,
+          checkbox: false,
+          radio: true,
+          children: undefined
+        }
+      })
+
+      dirList.treeList('data', data)      
+    },
+
+    oneditcancel: function() {
+    },
+
+    oneditsave: function() {
+      this.nodeid = $("#node-input-assert-status-target-container-div").treeList('selected').nodeid;
+    },
+
+    oneditresize: function(size) {
+    },
+
+
+  });
+})();
+
+</script>
+
+<script type="text/html" data-template-name="ut-assert-status">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
+  </div>
+
+  <div class="form-row">
+    <input type="checkbox" id="node-input-inverse"
+             style="display:inline-block; width:15px; vertical-align:baseline;">
+    <label for="node-input-inverse"><span data-i18n="ut-assert-status.label.inverse"></span></label>
+  </div>
+
+  <div id="ut-assert-status-opts-to-hide-on-inverse">
+    <div class="form-row">
+      <label for="node-input-content"><i class="fa fa-tag"></i> <span data-i18n="ut-assert-status.label.content"></span></label>
+      <input type="text" id="node-input-content" data-i18n="[placeholder]ut-assert-status.label.content">
+    </div>
+
+    <div class="form-row">
+      <label for="node-input-colour">
+            <i class="fa fa-tag"></i>
+            <span>Colour</span>
+          </label>
+    
+      <select id="node-input-colour">
+        <option value="red" selected=selected>Red</option>
+        <option value="grey">Grey</option>
+        <option value="blue">Blue</option>
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="node-input-shape">
+            <i class="fa fa-tag"></i>
+            <span>Shape</span>
+          </label>
+    
+      <select id="node-input-shape">
+        <option value="dot" selected=selected>Dot</option>
+        <option value="ring">Ring</option>
+      </select>
+    </div>
+  </div>
+
+
+    <div class="form-row" style="margin-left: 10px; position: relative; height: 40vh; margin-right: 15px; min-height: 5vh;"">
+          <div style=" margin-bottom: 5px; width: 35%; padding-left: 60%;">
+      <input type="text" id="node-input-assert-status-target-filter">
+    </div>
+    
+    <div id="node-input-assert-status-target-container-div"></div>
+    </div>
+</script>

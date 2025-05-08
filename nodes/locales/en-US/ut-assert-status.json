@@ -1,0 +1,17 @@
+{
+  "ut-assert-status": {
+
+
+    "label": {
+      "statusset": "Status Set",
+      "nodeid": "Node Id",
+      "content": "Content",
+      "inverse": "Inverse, no status message"
+    },
+
+    "status": {
+      "waiting": "Waiting for Godot",
+      "timeout": "No more time to waiting"
+    }
+  }
+}

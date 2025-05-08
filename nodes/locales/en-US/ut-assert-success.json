@@ -1,0 +1,15 @@
+{
+  "ut-assert-success": {
+
+
+    "label": {
+      "statusset": "Status Set",
+      "succeed": "assert succeed"
+    },
+
+    "status": {
+      "waiting": "Waiting for Godot",
+      "timeout": "No more time to waiting"
+    }
+  }
+}

@@ -1,0 +1,608 @@
+<script type="text/javascript">
+  (function() {
+         
+   function unitTestingPullUpdateFlows(cb = null, token = null) {
+  let handleResponse = (resp) => {
+    if (resp.status == "failed") {
+      return RED.notify(resp.msg, {
+        type: "error",
+        id: "FlowHubPull",
+        timeout: 4000
+      });
+    }
+
+    let treeListItems = [];
+    let tags = {}
+    let nonTag = []
+
+    Object.keys(resp.data).forEach(function (key) {
+      let mth = resp.data[key].name.match(/^(\[.+\])/)
+      if (mth) {
+        if (tags[mth[0]]) {
+          tags[mth[0]].push(resp.data[key])
+        } else {
+          tags[mth[0]] = [resp.data[key]]
+        }
+      } else {
+        nonTag.push(resp.data[key])
+      }
+    })
+
+    Object.keys(tags).sort((a, b) => { return a < b ? -1 : 1 }).forEach(tag => {
+      let children = tags[tag].map(itm => {
+        return {
+          id: `flowid-treelist-${itm.id}`,
+          label: itm.name,
+          icon: "fa fa-minus",
+          flowid: itm.id,
+          sublabel: itm.id,
+          selected: $('#node-input-flowhubpull-flowid').val() == itm.id,
+          checkbox: false,
+          children: undefined
+        }
+      })
+
+      treeListItems.push({
+        label: tag,
+        icon: "",
+        flowid: "",
+        sublabel: "",
+        selected: false,
+        checkbox: false,
+        children: children.sort((a, b) => { return a.label < b.label ? -1 : 1 })
+      });
+    })
+
+    nonTag.sort((a, b) => { return a.name < b.name ? -1 : 1 }).forEach(itm => {
+      treeListItems.push({
+        id: `flowid-treelist-${itm.id}`,
+        label: itm.name,
+        icon: "fa fa-minus",
+        flowid: itm.id,
+        sublabel: itm.id,
+        selected: $('#node-input-flowhubpull-flowid').val() == itm.id,
+        checkbox: false,
+        children: undefined
+      })
+    })
+
+    if (cb) {
+      cb(treeListItems)
+    };
+  }
+
+  $.get({
+    url: "/UnitTesting/tests.json?cb=" + new Date().getTime(),
+  }).done((resp) => {
+    handleResponse(resp)
+  }).fail((e) => {
+    RED.notify("Failed to obtain tests lists", "error")
+  });
+};
+
+
+function doFlowImportForSidebarUnittesting(flowid) {
+
+  if ( RED.nodes.workspace(flowid) ) {
+    RED.workspaces.show(flowid, false, false, true);
+  } else {
+    RED.notify("Retrieving test", {
+      type: "warning",
+      timeout: 3000
+    });
+
+    $.get({
+      url: "/UnitTesting/" + flowid + "/retrieve?cb=" + new Date().getTime(),
+      headers: {
+      }
+    }).done((e, d) => {
+      try {
+        if (!e || !e.flowdata || !Array.isArray(e.flowdata)) {
+          return RED.notify("Access denied or revision not found.", {
+            type: "error",
+            timeout: 3000
+          });
+        }
+      } catch (ex) {
+        return RED.notify("Access Denied, parse error.", {
+          type: "error",
+          timeout: 3000
+        });
+      }
+
+      RED.clipboard.import();
+
+      setTimeout(() => {
+        var content = e.flowdata;
+
+
+        $('#red-ui-clipboard-dialog-import-text').val(
+          JSON.stringify(content)
+        ).trigger("paste");
+      }, 300);
+    }).fail(e => {
+      let msg = "<p>Failed to retrieve test flow data from server.</p>" +
+        $('#node-input-unittestingpull-flowid').val().trim() + "</p>" +
+        "<p>AdBlocker or uBlock might have prevented request.</p>" +
+        "<p>Please check browser console for more details.</p>" + e;
+
+      RED.notify(msg, {
+        type: "error",
+        id: "UnitTesting",
+        timeout: 4000
+      });
+    });
+  }
+}
+
+function expandAllTests(dirList) {
+  let folders = dirList.treeList('data').filter(d => !d.id);
+
+  let next = (idx) => {
+    if (idx < folders.length) {
+      dirList.treeList('select', folders[idx]);
+      dirList.treeList('selected').treeList.expand(() => { next(idx + 1) })
+    }
+  }
+
+  next(0)
+}
+
+function collapseAllTests(dirList) {
+  let folders = dirList.treeList('data').filter(d => !d.id);
+
+  let next = (idx) => {
+    if (idx < folders.length) {
+      dirList.treeList('select', folders[idx]);
+      // for some strange reason, collapse does not have a callback
+      dirList.treeList('selected').treeList.collapse()
+      next(idx + 1)
+    }
+  }
+
+  next(0)
+}
+
+function resetTestResultsForFlowId(dirList,flowid) {
+  removeTestResultsForFlow(dirList,`flowid-treelist-${flowid}`);
+}
+
+function removeTestResultsForFlow(dirList,listid) {
+  dirList.treeList('select', listid)
+  $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', 'fa fa-minus').css('color', '')
+}
+
+function removeAllTestResults(dirList) {
+  [...dirList.treeList('data').map(d => d.children).flat(),
+  ...dirList.treeList('data').filter(d => !!d.id)
+  ].forEach(d => {
+    removeTestResultsForFlow(dirList,d)
+  })
+}
+
+function highlightTestResult(dirList, flowid, status) {
+  dirList.treeList('select', `flowid-treelist-${flowid}`);
+
+  let clr = "green"
+  let shp = "fa-check"
+
+  switch (status) {
+    case "pending":
+      clr = "orange";
+      shp = "fa-circle-o";
+      break;
+    case "failed":
+      clr = "red";
+      shp = "fa-remove";
+      break;
+  }
+
+  $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', "fa " + shp).css('color', clr)
+}
+
+function clearAllNodeStatus() {
+  if (typeof RED.comms.emit !== "undefined") {
+    RED.nodes.eachNode((nde) => {
+      RED.comms.emit([{
+        "topic": `status/${nde.id}`,
+        "data": {}
+      }])
+    });
+  }
+}
+
+function clearNodeStatusForFlow(flowid) {
+  if (typeof RED.comms.emit !== "undefined") {
+    RED.nodes.eachNode((nde) => {
+      if ( nde.z == flowid) {
+        RED.comms.emit([{
+          "topic": `status/${nde.id}`,
+          "data": {}
+        }])
+      }
+    });
+  }
+}
+
+function clearDebugPanel() {
+  // from [debug node](https://github.com/node-red/node-red/blob/2854351909dee9f92597faba3f37239134294eec/packages/node_modules/%40node-red/nodes/core/common/21-debug.html#L437)
+  RED.actions.invoke("core:clear-debug-messages")
+}
+
+function runTestForFlowId(flowid,dirList=undefined) {
+  if (flowid) {
+    if (dirList) {
+      resetTestResultsForFlowId(dirList,flowid)
+    }
+    clearNodeStatusForFlow(flowid)
+    resetTestResultsRow();
+    
+    if ( $('#node-input-unittestingpull-clear-debug-on-testrun').is(':checked')) {
+      clearDebugPanel()
+    }
+
+    let params = `cb=${new Date().getTime()}`
+    if ( $("#node-input-unittestingpull-ignore-pending-status-on-testrun").is(":checked") ) {
+      params = `${params}&testpend=true`
+    } else {
+      params = `${params}&testpend=false`
+    }
+    
+    $.get({
+      url: `/UnitTesting/${flowid}/runtest?${params}`
+    }).done((resp) => {
+      RED.notify(`Triggered test run for ${flowid}`, "success")
+      $('#node-input-unittestingpull-testresults-row').find(".todo").html(resp.todo)
+    }).fail((e) => {
+      RED.notify("Failed to trigger test", "error")
+    });
+  }
+}
+
+function testCurrentWorkspace() {
+  if (RED.comms.isConnected && !RED.comms.isConnected()) {
+    return RED.notify("Not connected to server, websocket down", "error")
+  }
+  runTestForFlowId(RED.workspaces.active())
+}
+
+function sendUnittestngHalt() {
+  $.get({
+    url: `/UnitTesting/halt?cb=${new Date().getTime()}`
+  }).done((resp) => {
+    RED.notify(`Halt send successfully`, "success")
+  }).fail((e) => {
+    RED.notify("Failed to send halt command", "error")
+  });
+}
+
+function resetTestResultsRow() {
+  $('#node-input-unittestingpull-testresults-row').show();
+  [".todo", ".pending", ".total", ".success",".failed"].forEach( d => {
+    $('#node-input-unittestingpull-testresults-row').find(d).html("0")
+  })
+}
+function runAllTests(dirList) {
+  if (RED.comms.isConnected && !RED.comms.isConnected()) {
+    return RED.notify("Not connected to server, websocket down", "error")
+  }
+  
+  resetTestResultsRow();
+  expandAllTests(dirList)
+  clearAllNodeStatus()
+
+  setTimeout(() => {
+    removeAllTestResults(dirList);
+
+    if ( $('#node-input-unittestingpull-clear-debug-on-testrun').is(':checked')) {
+      clearDebugPanel()
+    }
+
+    let params = `cb=${new Date().getTime()}`
+    if ($("#node-input-unittestingpull-ignore-pending-status-on-testrun").is(":checked")) {
+      params = `${params}&testpend=true`
+    } else {
+      params = `${params}&testpend=false`
+    }
+
+    $.get({
+      url: `/UnitTesting/all/runtest?${params}`
+    }).done((resp) => {
+      RED.notify(`${resp.todo} tests have been triggered`, "success")
+      $('#node-input-unittestingpull-testresults-row').find(".todo").html(resp.todo)
+    }).fail((e) => {
+      RED.notify("Failed to trigger tests", "error")
+    });
+  }, 200)  
+}
+
+   // Add your plugin as a new tabsheet in the right sidebar AFTER the flow editor is completely started
+   var initialiseConfigNodeOnce = () => {
+      RED.events.off('runtime-state', initialiseConfigNodeOnce);
+    
+      var content = $($('script[type="text/x-red"][data-template-name="UnitTestingSidebar"]').i18n().html());
+
+// Add a "Your sidebar" tabsheet to the right sidebar panel, in which this sidebar panel can be displayed
+// --> more details: https://nodered.org/docs/api/ui/sidebar/
+
+RED.sidebar.addTab({
+  id: "UnitTestingErlangRed",
+  label: "Testing", // short name for the tab
+  name: "Testing", // long name for the menu
+  content: content,
+  enableOnEdit: true,
+  iconClass: "fa fa-th",
+  visible: true
+});
+
+
+var tabs = RED.tabs.create({
+  id: 'func-unittesting-tabs',
+  onchange: function (tab) {
+    $('#func-unittesting-tabs-content').children().hide();
+    $('#' + tab.id).show();
+  }
+});
+
+// Add pull tab
+tabs.addTab({
+  id: 'func-unittesting-tab-pull',
+  iconClass: 'fa fa-arrow-down',
+  label: 'Tests'
+});
+
+// Add compare tab
+tabs.addTab({
+  id: 'func-unittesting-tab-compare',
+  iconClass: 'fa fa-clone',
+  label: 'TBD'
+});
+
+// Add push tab
+tabs.addTab({
+  id: 'func-unittesting-tab-push',
+  iconClass: 'fa fa-arrow-up',
+  label: 'TBD'
+});
+
+tabs.activateTab("func-unittesting-tab-pull");
+
+var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
+  width: "100%",
+  height: "100%"
+}).treeList(
+  {
+    multi: false
+  }
+).on('treelistselect', function (event, item) {
+    if ( item.flowid) {
+      $('#unittesting-view-testflow-link').prop('href', `?tstid=${item.flowid}`)
+      $('#unittesting-view-testflow-link').fadeIn(300)
+    } else {
+      $('#unittesting-view-testflow-link').fadeOut(300)
+      $('#unittesting-view-testflow-link').prop('href', "")
+    }
+}).on('treelistconfirm', function (event, item) {
+  if (item.flowid) {
+    doFlowImportForSidebarUnittesting(item.flowid)
+  }
+});
+
+
+var search = $("#node-input-unittestingpull-sb-target-filter").searchBox({
+  style: "compact",
+  delay: 300,
+  change: function () {
+    var val = $(this).val().trim().toLowerCase();
+    if (val === "") {
+      dirList.treeList("filter", null);
+      search.searchBox("count", "");
+    } else {
+      var count = dirList.treeList("filter", function (item) {
+        return item.label.toLowerCase().indexOf(val) > -1 || item.sublabel.toLowerCase().indexOf(val) > -1
+      });
+      search.searchBox("count", count + " / " + dirList.treeList("data").length);
+    }
+  }
+});
+
+$('#node-input-unittestingpull-sb-test-flow-but').on('click', function (e) {
+  e.preventDefault();
+
+  if (RED.comms.isConnected && !RED.comms.isConnected()) {
+    return RED.notify("Not connected to server, websocket down", "error")
+  }
+  
+  let sltd = dirList.treeList('selected')
+  if ( sltd.flowid) {
+    runTestForFlowId(sltd.flowid,dirList)
+  } else if (sltd.children) {
+    sltd.children.map( d => d.flowid ).map( d => runTestForFlowId(d,dirList))
+  }
+})
+
+$('#node-input-unittestingpull-sb-testall-but').on('click', function (e) {
+  e.preventDefault();
+  runAllTests(dirList)
+})
+
+let handleTestResult = (event, data) => {
+  if (data.flowid) {
+    if ( data.status == "unknown_testcase") {
+      RED.notify("Test with flowid " + data.flowid + ": is unknown to us", {
+        type: "warning",
+        timeout: 3000
+      });
+      return
+    }
+
+    RED.notify("Test result for flowid " + data.flowid + ": " + data.status, {
+      type: data.status == "failed" ? "error" : (data.status == "pending" ? "warning" : "success"),
+      timeout: (data.status == "failed" || data.status == "pending") ? 3000 : 2000
+    });
+    
+    // update the test results row
+    let v = parseInt($("#node-input-unittestingpull-testresults-row").find(".todo").html());
+    if ( v > 0 ) {
+      $("#node-input-unittestingpull-testresults-row").find(".todo").html(`${v - 1}`)
+    }
+    v = parseInt($("#node-input-unittestingpull-testresults-row").find("."+data.status).html());
+    $("#node-input-unittestingpull-testresults-row").find("." + data.status).html(`${v+1}`)
+    v = parseInt($("#node-input-unittestingpull-testresults-row").find(".total").html());
+    $("#node-input-unittestingpull-testresults-row").find(".total").html(`${v + 1}`)
+
+    highlightTestResult(dirList, data.flowid, data.status);
+  }
+}
+RED.comms.subscribe('unittesting:testresults', handleTestResult);
+
+$('#node-input-unittestingpull-expand-all-but').on('click', function (e) {
+  e.preventDefault();
+  expandAllTests(dirList)
+})
+
+$('#node-input-unittestingpull-collapse-but').on('click', function (e) {
+  e.preventDefault();
+  collapseAllTests(dirList)
+})
+
+$('#node-input-unittestingpull-clear-debug-panel-but').on('click', function (e) {
+  e.preventDefault();
+  clearDebugPanel()
+})
+
+$('#node-input-unittestingpull-sb-refresh-list-but').on('click', function (e) {
+  e.preventDefault();
+
+  setTimeout(() => {
+    unitTestingPullUpdateFlows((lst) => {
+      dirList.treeList('empty')
+      $('#unittestingpull-sb-view-flow-link').hide()
+      setTimeout(() => {
+        dirList.treeList('data', lst)
+      }, 150)
+    }, undefined);
+  }, 150);
+});
+
+// debugging
+window.unitTestDirList = dirList;
+window.fakeTestResult = handleTestResult;
+
+RED.comms.on("connect", () => {
+  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+});
+
+RED.comms.on("disconnect", () => {
+  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', true)
+  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', true)
+});
+
+if ( !RED.comms.isConnected || RED.comms.isConnected() ) {
+  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+}
+
+RED.actions.add("unittesting:send-halt-to-test-server", sendUnittestngHalt)
+RED.actions.add("unittesting:test-current-workspace", testCurrentWorkspace)
+RED.actions.add("unittesting:run-all-tests", () => { runAllTests(dirList) } )
+
+   };
+   
+   RED.events.on('runtime-state', initialiseConfigNodeOnce);
+})();
+</script>
+
+<!-- The html for the right sidebar plugin screen -->
+<script type="text/x-red" data-template-name="UnitTestingSidebar">
+  <div class="form-row func-unittesting-tabs-row">
+   <ul style="min-width: 600px; margin-bottom: 20px;" id="func-unittesting-tabs"></ul>
+</div>
+
+<!--func-unittesting-tabs-row-->
+<div id="func-unittesting-tabs-content">
+
+   <!--func-unittesting-tab-pull#-->
+   <div id="func-unittesting-tab-pull" style="display:none" style="min-height: calc(100% - 95px);">
+      <div class="form-row">
+         <div class="col-100">
+
+            <div class="form-row" style="margin-left: 10px; margin-top: 30px;">
+               <button id="node-input-unittestingpull-sb-refresh-list-but"
+                        class="red-ui-button"><i class="fa fa-refresh"></i> Refresh Test List</button>
+                <a id="unittesting-view-testflow-link" 
+                    style="color: blue; display: none; margin-left: 20px;" 
+                    target="_blank" href="">Share Testcase <i class="fa fa-external-link"></i></a>            
+            </div>
+ 
+            <div class="form-row"
+               style="position: relative; min-height: 100px; height: 500px; margin-left: 10px; margin-right: 15px; margin-top: 5px;">
+               <div style="position: absolute; top: -30px; right: 0px;">
+                  <input type="text" id="node-input-unittestingpull-sb-target-filter" placeholder="Name or Flow Id">
+               </div>
+
+               <div id="node-input-unittestingpull-sb-target-container-div" style="min-height: 500px;"></div>
+            </div>
+         </div>
+      </div>
+
+      <div id="node-input-unittestingpull-testresults-row" class="form-row" 
+                style="margin-left: 10px; margin-top: 30px; display: none;">
+         Todo <span class="todo" style="color: purple">0</span>
+         / Succeed <span class="success" style="color: green">0</span>
+         / Pending <span class="pending" style="color: orange">0</span>
+         / Failed <span class="failed" style="color: red">0</span>
+         / Done <span class='total'>0</span> 
+      </div>
+
+      <div class="form-row" style="margin-left: 10px; margin-top: 30px;">
+         <button id="node-input-unittestingpull-sb-testall-but" disabled=disabled
+                  class="red-ui-button">Test all</button>
+         <button id="node-input-unittestingpull-sb-test-flow-but" disabled=disabled
+                  class="red-ui-button">Test one</button>
+      </div>
+
+      <div class="form-row" style="margin-left: 10px;">
+         <input type="checkbox" id="node-input-unittestingpull-clear-debug-on-testrun"
+                              style="display:inline-block; margin-left: 10px; width:15px; vertical-align:baseline;">
+         <label for="node-input-unittestingpull-clear-debug-on-testrun" style="width: 250px;">
+                   <span>Clear debug panel on every test run?</span>
+               </label>
+      </div>
+
+      <div class="form-row" style="margin-left: 10px;">
+         <input type="checkbox" id="node-input-unittestingpull-ignore-pending-status-on-testrun"
+                                    style="display:inline-block; margin-left: 10px; width:15px; vertical-align:baseline;">
+         <label for="node-input-unittestingpull-ignore-pending-status-on-testrun" style="width: 250px;">
+                         <span>Test pending tests also?</span>
+                     </label>
+      </div>
+
+      <div class="form-row" style="margin-left: 10px;">
+         <button id="node-input-unittestingpull-expand-all-but"
+                  class="red-ui-button">Expand</button>
+         <button id="node-input-unittestingpull-collapse-but"
+                  class="red-ui-button">Collapse</button>
+         <button id="node-input-unittestingpull-clear-debug-panel-but"
+                  class="red-ui-button">Clear Debug Panel</button>
+      </div>
+   </div>
+
+   <!--func-unittesting-tab-compare#-->
+   <div id="func-unittesting-tab-compare" style="display:none; height: 87vh;">
+      <div class="form-row" style="margin-left: 10px;">
+         This tab is intentionally left blank.
+      </div>
+   </div>
+
+   <!--func-unittesting-tab-push#-->
+   <div id="func-unittesting-tab-push" style="display:none">
+      <div class="form-row" style="margin-left: 10px;">
+         This tab is intentionally left blank.
+      </div>
+   </div>
+   <!--func-unittesting-tab-tab#-->
+</div>
+<!--func-unittesting-tabs-content-->
+</script>
