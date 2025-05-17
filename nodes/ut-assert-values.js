@@ -27,10 +27,10 @@ module.exports = function(RED) {
     return false;
   }
 
-  var postUnsupported = (rule) => {
+  var postUnsupported = (rule, msg) => {
     node.status({ fill: "red", shape: "dot", 
                     text: RED._("ut-assert-values.label.unsupported", { property: JSON.stringify(rule) }) });
-    sendToDebug(node, rule, 30)
+    sendToDebug(node, rule, msg, 30)
     return rule
   }
 
@@ -62,8 +62,12 @@ module.exports = function(RED) {
               if ( JSON.stringify(oldObj, Object.keys(oldObj).sort()) != JSON.stringify(expObj, Object.keys(expObj).sort()) ) {
                 failures.push(sendToDebug(node, rule, msg, 20))                
               }
+            } else if (rule.tot == "msg") {
+              if ( RED.util.getObjectProperty(msg,rule.to) != RED.util.getObjectProperty(msg,rule.p) ) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              }
             } else {
-              unsupported.push(postUnsupported(rule))
+              unsupported.push(postUnsupported(rule,msg))
             }
           /*
            * Rule is match
@@ -75,13 +79,13 @@ module.exports = function(RED) {
                 failures.push(sendToDebug(node, rule, msg, 20))                
               }
             } else {
-               unsupported.push(postUnsupported(rule))
+               unsupported.push(postUnsupported(rule,msg))
             }
           /*
            * Other rule types are not supported
            */
           } else {
-             unsupported.push(postUnsupported(rule))
+             unsupported.push(postUnsupported(rule,msg))
           }
         
           console.log(rule)
@@ -91,7 +95,7 @@ module.exports = function(RED) {
           node.status({fill: "red", shape: "dot", text: "assert failed"})
         } else {
           if ( unsupported.length > 0) {
-            node.status({ fill: "yellow", shape: "ring", text: "unsupported errors" })
+            node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
           } else {
             node.status({ fill: "green", shape: "ring", text: "assert succeed" })
           }
