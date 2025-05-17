@@ -21,18 +21,22 @@ module.exports = function(RED) {
 
       msg = RED.util.encodeObject(msg);
       RED.comms.publish("debug", msg);
-    } catch (ex) {
+     } catch (ex) {
       console.error(ex)
+     }
+     return false;
     }
-    return false;
-  }
 
-  var postUnsupported = (rule, msg) => {
-    node.status({ fill: "red", shape: "dot", 
-                    text: RED._("ut-assert-values.label.unsupported", { property: JSON.stringify(rule) }) });
-    sendToDebug(node, rule, msg, 30)
-    return rule
-  }
+    var postUnsupported = (rule, msg) => {
+      node.status({ fill: "red", shape: "dot", 
+                      text: RED._("ut-assert-values.label.unsupported", { property: JSON.stringify(rule) }) });
+      sendToDebug(node, rule, msg, 30)
+      return rule
+    }
+
+    var escapeSpecials = (str) => {
+      return str ? str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replaceAll(/\t/g, "\\t") : str
+    }
 
     node.on('close', function() {
       node.status({});
@@ -49,7 +53,8 @@ module.exports = function(RED) {
            */   
           if ( rule.t == "eql" && rule.pt == "msg") {
             if ( rule.tot == "str") {
-              if ( rule.to != RED.util.getObjectProperty(msg,rule.p) ) {
+              if ( rule.to != escapeSpecials(RED.util.getObjectProperty(msg,rule.p)) ) {
+                rule._vt = escapeSpecials(RED.util.getObjectProperty(msg, rule.p))
                 failures.push(sendToDebug(node, rule, msg, 20))
               }
             } else if ( rule.tot == "num") {

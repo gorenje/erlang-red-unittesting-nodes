@@ -4,7 +4,7 @@
   "dependencies": {
   },
 
-  "description": "Unit testing nodes for Erlang-RED.",
+  "description": "Unit testing nodes for Erlang-RED and Node-RED.",
   
   "keywords": [ 
     "node-red", 
