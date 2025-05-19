@@ -4,6 +4,18 @@ module.exports = function(RED) {
 
     var node = this;
     var cfg = config;
+ 
+    /*
+    * Note to self: getMessageProperty(..) and getObjectProperty(...) only differ in that
+    * getMessageProperty will remove any 'msg.' prefix from the property name. This is not
+    * the case here since we're using the Node-RED inbuilt helpers for setting values.
+    * --> here: https://github.com/node-red/node-red/blob/0f653ed7b2640feba8885e48b9448df7d42acaf0/packages/node_modules/%40node-red/util/lib/util.js#L397-L402
+    *
+    *
+    * from --> https://github.com/node-red/node-red/blob/0f653ed7b2640feba8885e48b9448df7d42acaf0/packages/node_modules/%40node-red/util/lib/util.js#L407-L418
+    *
+    *  getObjectProperty will return undefined if a property isn't set.
+    */
 
 
     var sendToDebug = (nde,rule,msgc,lvl) => {
@@ -24,14 +36,15 @@ module.exports = function(RED) {
      } catch (ex) {
       console.error(ex)
      }
-     return false;
+     return ["failure", rule];
     }
 
     var postUnsupported = (rule, msg) => {
       node.status({ fill: "red", shape: "dot", 
                       text: RED._("ut-assert-values.label.unsupported", { property: JSON.stringify(rule) }) });
       sendToDebug(node, rule, msg, 30)
-      return rule
+      
+      return ["unsupported", rule]
     }
 
     var escapeSpecials = (str) => {
@@ -61,6 +74,12 @@ module.exports = function(RED) {
               if ( parseInt(rule.to) != parseInt(RED.util.getObjectProperty(msg,rule.p)) ) {
                 failures.push(sendToDebug(node, rule, msg, 20))                
               }
+            } else if (rule.tot == "bool") {
+              if ( rule.to == "true" && !RED.util.getObjectProperty(msg, rule.p)) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              } else if (rule.to == "false" && !!RED.util.getObjectProperty(msg, rule.p) ) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              }
             } else if (rule.tot == "json") {
               let expObj = JSON.parse(rule.to)
               let oldObj = RED.util.getObjectProperty(msg, rule.p)
@@ -73,6 +92,20 @@ module.exports = function(RED) {
               }
             } else {
               unsupported.push(postUnsupported(rule,msg))
+            }
+          /*
+           * Rule is not set on message object
+           */
+          } else if (rule.t == "notset" && rule.pt == "msg") {     
+            if (RED.util.getObjectProperty(msg, rule.p) !== undefined) {
+              failures.push(sendToDebug(node, rule, msg, 20))
+            }
+          /*
+           * Rule is not set on message object
+           */
+          } else if (rule.t == "set" && rule.pt == "msg") {
+            if (RED.util.getObjectProperty(msg, rule.p) === undefined) {
+              failures.push(sendToDebug(node, rule, msg, 20))
             }
           /*
            * Rule is match
@@ -92,38 +125,28 @@ module.exports = function(RED) {
           } else {
              unsupported.push(postUnsupported(rule,msg))
           }
-        
-          console.log(rule)
         })
 
         if (failures.length > 0 ) {
           node.status({fill: "red", shape: "dot", text: "assert failed"})
+          msg.assert_succeed = false
+          msg.assert_failures = failures.concat(unsupported)
         } else {
           if ( unsupported.length > 0) {
             node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
+            msg.assert_succeed = false
+            msg.assert_failures = failures.concat( unsupported )
           } else {
             node.status({ fill: "green", shape: "ring", text: "assert succeed" })
+            msg.assert_succeed = true
+            delete msg.assert_failures
           }
         }
-        
-        try {
-          try {
-            send(msg);
-            done();
-          } catch ( err ) {
-            // use node.error if the node might send subsequent messages
-            node.error("error occurred", { ...msg, error: err })
-            done();
-          }
-        } catch (err) {
-          // use done if the node won't send anymore messages for the
-          // message it received.
-          msg.error = err
-          done(err.message, msg)
-        }
+
+        send(msg);
+        done();
     });
   }
 
   RED.nodes.registerType("ut-assert-values", CoreutassertvaluesFunctionality);
-
 }

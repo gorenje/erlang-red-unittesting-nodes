@@ -2,8 +2,14 @@
   <p>Ensure specific values are set on the message passing through this node.</p>
   Ensure specific values are set on the message passing through this node.
 
+<p>
 If the values do not match, this node will cause and error.
 
-**This has no implementation when used with Node-RED, this is a Erlang-RED specific node.**
+<p>
+Upon completion, the node sets the "assert_succeed" flag on the message to either true or false depending on whether
+all tests succeed or some failed. This is an all or one flag.
+
+<p>
+The "assert_failures" array value is set on the message to contain all failures and unsupported features.
 
 </script>
