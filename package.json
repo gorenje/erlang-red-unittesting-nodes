@@ -14,6 +14,7 @@
   ],
 
   "license": "Don't do evil.",
+  "homepage": "https://github.com/gorenje/erlang-red-unittesting-nodes#readme",
   "author": "Gerrit Riessen <gerrit@flowhub.org>",
   "engines": {
     "node": ">=14"
@@ -33,5 +34,13 @@
       "ut-assert-status": "nodes/ut-assert-status.js",
       "ut-assert-debug": "nodes/ut-assert-debug.js"
     }
-  }
+  },
+  
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gorenje/erlang-red-unittesting-nodes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gorenje/erlang-red-unittesting-nodes"
+  }  
 }
