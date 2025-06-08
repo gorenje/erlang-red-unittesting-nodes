@@ -335,7 +335,7 @@ RED.sidebar.addTab({
   visible: true
 });
 
-
+/*
 var tabs = RED.tabs.create({
   id: 'func-unittesting-tabs',
   onchange: function (tab) {
@@ -366,6 +366,9 @@ tabs.addTab({
 });
 
 tabs.activateTab("func-unittesting-tab-pull");
+*/
+
+$('#func-unittesting-tab-pull').show();
 
 var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
   width: "100%",
@@ -376,7 +379,7 @@ var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
   }
 ).on('treelistselect', function (event, item) {
     if ( item.flowid) {
-      $('#unittesting-view-testflow-link').prop('href', `?tstid=${item.flowid}`)
+      $('#unittesting-view-testflow-link').prop('href', `https://flows.red-erik.org/f/${item.flowid}`)
       $('#unittesting-view-testflow-link').fadeIn(300)
     } else {
       $('#unittesting-view-testflow-link').fadeOut(300)

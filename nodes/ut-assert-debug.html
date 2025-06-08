@@ -76,6 +76,14 @@
           RED.view.select(item.nodeid);          
         }
       }).on('treelistconfirm', function (event, item) {
+      }).on("treelistitemmouseover", function (e, item) {
+        item.node.highlighted = true;
+        item.node.dirty = true;
+        RED.view.redraw();
+      }).on("treelistitemmouseout", function (e, item) {
+        item.node.highlighted = false;
+        item.node.dirty = true;
+        RED.view.redraw();
       });
 
       var search = $("#node-input-assert-debug-target-filter").searchBox({
@@ -100,6 +108,7 @@
             label: RED.utils.getNodeLabel(nde),
             icon: "",
             nodeid: nde.id,
+            node: nde,
             sublabel: nde.type,
             selected: nde.id == this.nodeid,
             checkbox: false,
@@ -134,7 +143,7 @@
   </div>
 
   <div class="form-row">
-      <input type="checkbox" id="node-input-inverse"
+     <input type="checkbox" id="node-input-inverse"
            style="display:inline-block; width:15px; vertical-align:baseline;">
     <label for="node-input-inverse"><span data-i18n="ut-assert-debug.label.inverse"></span></label>
   </div>
@@ -154,7 +163,7 @@
     </div>
   </div>
 
-    <div class="form-row" style="margin-left: 10px; position: relative; height: 40vh; margin-right: 15px; min-height: 5vh;"">
+    <div class="form-row" style="margin-left: 10px; position: relative; height: 40vh; margin-right: 15px; min-height: 5vh;">
       <div style="margin-bottom: 5px; width: 35%; padding-left: 60%;">
         <input type="text" id="node-input-assert-debug-target-filter">
       </div>

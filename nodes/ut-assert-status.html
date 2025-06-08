@@ -91,6 +91,14 @@
           RED.view.select(item.nodeid);
         }        
       }).on('treelistconfirm', function (event, item) {
+      }).on("treelistitemmouseover", function (e, item) {
+        item.node.highlighted = true;
+        item.node.dirty = true;
+        RED.view.redraw();
+      }).on("treelistitemmouseout", function (e, item) {
+        item.node.highlighted = false;
+        item.node.dirty = true;
+        RED.view.redraw();
       });
 
       var search = $("#node-input-assert-status-target-filter").searchBox({
@@ -115,6 +123,7 @@
           label: RED.utils.getNodeLabel(nde),
           icon: "",
           nodeid: nde.id,
+          node: nde,
           sublabel: nde.type,
           selected: nde.id == this.nodeid,
           checkbox: false,
