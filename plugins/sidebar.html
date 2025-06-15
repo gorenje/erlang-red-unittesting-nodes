@@ -197,6 +197,7 @@ function highlightTestResult(dirList, flowid, status) {
       break;
   }
 
+  $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status", status)
   $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', "fa " + shp).css('color', clr)
 }
 
@@ -381,6 +382,7 @@ var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
     if ( item.flowid) {
       $('#unittesting-view-testflow-link').prop('href', `https://flows.red-erik.org/f/${item.flowid}`)
       $('#unittesting-view-testflow-link').fadeIn(300)
+      $('#unittesting-helper-import-text').fadeIn(300)
     } else {
       $('#unittesting-view-testflow-link').fadeOut(300)
       $('#unittesting-view-testflow-link').prop('href', "")
@@ -388,6 +390,7 @@ var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
 }).on('treelistconfirm', function (event, item) {
   if (item.flowid) {
     doFlowImportForSidebarUnittesting(item.flowid)
+    $('#unittesting-helper-import-text').fadeOut(1000, () => { $('#unittesting-helper-import-text').remove() })
   }
 });
 
@@ -401,9 +404,32 @@ var search = $("#node-input-unittestingpull-sb-target-filter").searchBox({
       dirList.treeList("filter", null);
       search.searchBox("count", "");
     } else {
-      var count = dirList.treeList("filter", function (item) {
-        return item.label.toLowerCase().indexOf(val) > -1 || item.sublabel.toLowerCase().indexOf(val) > -1
-      });
+      var count = 0
+      if ( val == "is:pending" ) {
+        count = dirList.treeList("filter", function (item) {
+          return $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "pending"
+        });        
+      } else if (val == "is:failed" || val == "is:error")  { 
+        count = dirList.treeList("filter", function (item) {
+          return $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "failed"
+        });        
+      } else if (val == "is:passed" || val == "is:success") { 
+        count = dirList.treeList("filter", function (item) {
+          return $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "success"
+        });        
+      } else if (val == "is:untested") { 
+        count = dirList.treeList("filter", function (item) {
+          return !$($(item.treeList.container).find('.red-ui-treeList-icon')).data("status")
+        });        
+      } else if (val == "is:tested") {
+        count = dirList.treeList("filter", function (item) {
+          return !!$($(item.treeList.container).find('.red-ui-treeList-icon')).data("status")
+        });        
+      } else { 
+        count = dirList.treeList("filter", function (item) {
+          return item.label.toLowerCase().indexOf(val) > -1 || item.sublabel.toLowerCase().indexOf(val) > -1
+         });
+      }
       search.searchBox("count", count + " / " + dirList.treeList("data").length);
     }
   }
@@ -550,8 +576,13 @@ RED.actions.add("unittesting:run-all-tests", () => { runAllTests(dirList) } )
          </div>
       </div>
 
+      <div class="form-row" id="unittesting-helper-import-text" +
+           style="margin-left: 10px; margin-top: 15px; display: none;">
+         <span>double click on a test case <b>to import that test case</b></span>
+      </div>
+
       <div id="node-input-unittestingpull-testresults-row" class="form-row" 
-                style="margin-left: 10px; margin-top: 30px; display: none;">
+                style="margin-left: 10px; margin-top: 15px; display: none;">
          Todo <span class="todo" style="color: purple">0</span>
          / Succeed <span class="success" style="color: green">0</span>
          / Pending <span class="pending" style="color: orange">0</span>
