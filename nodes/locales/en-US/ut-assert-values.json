@@ -20,7 +20,9 @@
       "noteql": "not equal __property__",
       "notset": "not set __property__",
       "debug": "debug __property__",
-      "unsupported": "supported rule __property__"
+      "unsupported": "supported rule __property__",
+
+      "ignore_failure_if_succeed": "Ignore failure if matched once"
     },
     
     "action": {

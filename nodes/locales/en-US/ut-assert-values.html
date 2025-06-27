@@ -12,4 +12,16 @@ all tests succeed or some failed. This is an all or one flag.
 <p>
 The "assert_failures" array value is set on the message to contain all failures and unsupported features.
 
+<p>
+<b>Ignore if Succeed</b>
+
+<p>
+The <i>ignore failure if succeed</i> flag can be used if the assert value node receives multiple messages however as long as one message succeeded, then the assert values node will succeed and messages that failure will be ignored.
+
+<p>
+Normally each message is independent of one another but in the case of an assert values node with the flag "ignore failure" set, the node will remain in success mode until Node-RED, the flow or the node is reset/restarted.
+
+<p>
+Failures will still be sent to the debug panel however the node status will remain succeeded.
+
 </script>

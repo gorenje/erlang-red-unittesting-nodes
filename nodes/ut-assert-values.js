@@ -127,22 +127,26 @@ module.exports = function(RED) {
           }
         })
 
-        if (failures.length > 0 ) {
-          node.status({fill: "red", shape: "dot", text: "assert failed"})
-          msg.assert_succeed = false
-          msg.assert_failures = failures.concat(unsupported)
+        if (node.context().get("succeed") && cfg.ignore_failure_if_succeed) {
+          node.status({ fill: "green", shape: "ring", text: "assert succeed" })
         } else {
-          if ( unsupported.length > 0) {
-            node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
+          if (failures.length > 0 ) {
+            node.status({fill: "red", shape: "dot", text: "assert failed"})
             msg.assert_succeed = false
-            msg.assert_failures = failures.concat( unsupported )
+            msg.assert_failures = failures.concat(unsupported)
           } else {
-            node.status({ fill: "green", shape: "ring", text: "assert succeed" })
-            msg.assert_succeed = true
-            delete msg.assert_failures
+            if ( unsupported.length > 0) {
+              node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
+              msg.assert_succeed = false
+              msg.assert_failures = failures.concat( unsupported )
+            } else {
+              node.context().set("succeed",true)
+              node.status({ fill: "green", shape: "ring", text: "assert succeed" })
+              msg.assert_succeed = true
+              delete msg.assert_failures
+            }
           }
         }
-
         send(msg);
         done();
     });
