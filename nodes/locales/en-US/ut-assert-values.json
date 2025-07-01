@@ -22,7 +22,7 @@
       "debug": "debug __property__",
       "unsupported": "supported rule __property__",
 
-      "ignore_failure_if_succeed": "Ignore failure if matched once"
+      "ignore_failure_if_succeed": "Ignore failure if succeed once"
     },
     
     "action": {

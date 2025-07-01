@@ -413,11 +413,11 @@ var search = $("#node-input-unittestingpull-sb-target-filter").searchBox({
         count = dirList.treeList("filter", function (item) {
           return $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "failed"
         });        
-      } else if (val == "is:passed" || val == "is:success") { 
+      } else if (val == "is:passed" || val == "is:success" || val == "is:succeed") { 
         count = dirList.treeList("filter", function (item) {
           return $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "success"
         });        
-      } else if (val == "is:untested") { 
+      } else if (val == "is:untested" || val == "is:todo") { 
         count = dirList.treeList("filter", function (item) {
           return !$($(item.treeList.container).find('.red-ui-treeList-icon')).data("status")
         });        
@@ -537,6 +537,19 @@ RED.actions.add("unittesting:send-halt-to-test-server", sendUnittestngHalt)
 RED.actions.add("unittesting:test-current-workspace", testCurrentWorkspace)
 RED.actions.add("unittesting:run-all-tests", () => { runAllTests(dirList) } )
 
+$('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) => {
+  e.preventDefault();
+  if ( $(e.target).data('filter') == "") {
+     $('#node-input-unittestingpull-sb-target-filter').val('').trigger('keyup', { keyCode: 13}) 
+  } else {
+    let newVal = `is:${$(e.target).data('filter')}`
+    let currVal = $('#node-input-unittestingpull-sb-target-filter').val()
+
+    if ( newVal == currVal) { newVal = "" }  // toggle between filter and all
+    $('#node-input-unittestingpull-sb-target-filter').val(newVal).trigger('keyup', { keyCode: 13}) 
+  }
+})
+
    };
    
    RED.events.on('runtime-state', initialiseConfigNodeOnce);
@@ -583,11 +596,11 @@ RED.actions.add("unittesting:run-all-tests", () => { runAllTests(dirList) } )
 
       <div id="node-input-unittestingpull-testresults-row" class="form-row" 
                 style="margin-left: 10px; margin-top: 15px; display: none;">
-         Todo <span class="todo" style="color: purple">0</span>
-         / Succeed <span class="success" style="color: green">0</span>
-         / Pending <span class="pending" style="color: orange">0</span>
-         / Failed <span class="failed" style="color: red">0</span>
-         / Done <span class='total'>0</span> 
+         <span class='filtrg'data-filter="todo">Todo <span class="todo" style="color: purple">0</span></span>
+         / <span class='filtrg'data-filter="succeed">Succeed <span class="success" style="color: green">0</span></span>
+         / <span class='filtrg'data-filter="pending">Pending <span class="pending" style="color: orange">0</span></span>
+         / <span class='filtrg'data-filter="failed">Failed <span class="failed" style="color: red">0</span></span>
+         / <span class='filtrg'data-filter="tested">Done <span class='total'>0</span></span>
       </div>
 
       <div class="form-row" style="margin-left: 10px; margin-top: 30px;">
