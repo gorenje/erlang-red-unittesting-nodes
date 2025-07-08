@@ -503,6 +503,8 @@ $('#node-input-unittestingpull-clear-debug-panel-but').on('click', function (e) 
 $('#node-input-unittestingpull-sb-refresh-list-but').on('click', function (e) {
   e.preventDefault();
 
+  $('#node-input-unittestingpull-sb-target-filter').val('').trigger('keyup', { keyCode: 13 })
+  
   setTimeout(() => {
     unitTestingPullUpdateFlows((lst) => {
       dirList.treeList('empty')

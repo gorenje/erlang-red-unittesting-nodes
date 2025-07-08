@@ -74,6 +74,12 @@ module.exports = function(RED) {
               if ( parseInt(rule.to) != parseInt(RED.util.getObjectProperty(msg,rule.p)) ) {
                 failures.push(sendToDebug(node, rule, msg, 20))                
               }
+            } else if (rule.tot == "bin") {
+              let expBuffer = Buffer.from(JSON.parse(rule.to));
+              let valBuffer = RED.util.getObjectProperty(msg, rule.p);
+              if ( Buffer.compare( expBuffer, valBuffer) != 0 ) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              }
             } else if (rule.tot == "bool") {
               if ( rule.to == "true" && !RED.util.getObjectProperty(msg, rule.p)) {
                 failures.push(sendToDebug(node, rule, msg, 20))
