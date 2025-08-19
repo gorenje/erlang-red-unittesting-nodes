@@ -5,52 +5,23 @@ module.exports = function(RED) {
     var node = this;
     var cfg = config;
 
-
-    var sendToDebug = (nde, rule, msgc, lvl) => {
-      try {
-        let msg = {
-          id: nde.id,
-          z: nde.z,
-          _alias: nde._alias,
-          path: nde._flow.path,
-          name: nde.name,
-          topic: msgc.topic,
-          msg: { msg: msgc, rule: rule },
-          level: lvl
-        }
-
-        msg = RED.util.encodeObject(msg);
-        RED.comms.publish("debug", msg);
-      } catch (ex) {
-        console.error(ex)
-      }
-      return ["failure", rule];
-    }
-
-    var postUnsupported = (rule, msg) => {
-      node.status({
-        fill: "red", shape: "dot",
-        text: RED._("ut-assert-success.label.unsupported", { property: JSON.stringify(rule) })
-      });
-      sendToDebug(node, rule, msg, 30)
-
-      return ["unsupported", rule]
-    }
-
-
     node.on('close', function() {
+      node.context().set("msgcnt", 0)
       node.status({});
     });
 
     /* msg handler, in this case pass the message on unchanged */
     node.on("input", function(msg, send, done) {
+        let msgcnt = (node.context().get("msgcnt") || 0) + 1;
+        node.context().set("msgcnt", msgcnt)
+
         // How to send a status update
-        if ( cfg.count == 1) {
+        if ( (cfg.count || 1) == msgcnt) {
           node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-success.label.succeed") });
         } else {
-          postUnsupported("count != 1", msg)
-          node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") });
+          node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${msgcnt}`});
         }
+        
         // Send a message and how to handle errors.
         try {
           try {

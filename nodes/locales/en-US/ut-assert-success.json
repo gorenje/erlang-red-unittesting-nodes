@@ -7,7 +7,7 @@
       "succeed": "assert succeed",
       "count": "Msg Count",
       "unsupported": "Unsupported",
-      "failed": "assert Failed"
+      "failed": "assert failed"
     },
 
     "status": {

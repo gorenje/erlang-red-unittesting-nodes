@@ -18,7 +18,11 @@
         value:"",
       },
       count: {
-        value: 1
+        value: 1,
+        required: true,
+        validate: function(v) {
+          return v == "" || parseInt(v) > 0
+        }
       }
     },
 
@@ -28,7 +32,14 @@
     outputs: 0,
 
     label: function() {
-      return (this.name || this._def.paletteLabel);
+      let label = `${this.name || this._def.paletteLabel}`
+
+      if ( this.count == "") { this.count = 1 }
+
+      if ( this.count > 1  ) {
+        label = `${label}: ${this.count}`
+      }
+      return label;
     },
 
     labelStyle: function() {
@@ -36,18 +47,21 @@
     },
 
     onpaletteadd: function() {
+      if (!this.count || this.count == "") { this.count = 1 }
     },
 
     onpaletteremove: function() {
     },
 
     oneditprepare: function() {
+      if (!this.count || this.count == "")  { this.count = 1 }
     },
 
     oneditcancel: function() {
     },
 
     oneditsave: function() {
+      if (!this.count || this.count == "")  { this.count = 1 }
     },
 
     oneditresize: function(size) {

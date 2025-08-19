@@ -52,6 +52,7 @@ module.exports = function(RED) {
     }
 
     node.on('close', function() {
+      node.context().set("succeed", false)
       node.status({});
     });
 
