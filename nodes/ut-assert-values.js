@@ -32,7 +32,9 @@ module.exports = function(RED) {
       }
 
       msg = RED.util.encodeObject(msg);
-      RED.comms.publish("debug", msg);
+      if (!cfg.ignore_failure_if_succeed) {
+        RED.comms.publish("debug", msg);
+      }
      } catch (ex) {
       console.error(ex)
      }
@@ -150,7 +152,7 @@ module.exports = function(RED) {
           if (failures.length > 0 ) {
             node.status({fill: "red", shape: "dot", text: "assert failed"})
             msg.assert_succeed = false
-            msg.assert_failures = failures.concat(unsupported)
+            msg.assert_failures = failures.concat(unsupported)            
           } else {
             if ( unsupported.length > 0) {
               node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
