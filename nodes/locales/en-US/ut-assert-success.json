@@ -4,7 +4,10 @@
 
     "label": {
       "statusset": "Status Set",
-      "succeed": "assert succeed"
+      "succeed": "assert succeed",
+      "count": "Msg Count",
+      "unsupported": "Unsupported",
+      "failed": "assert Failed"
     },
 
     "status": {
