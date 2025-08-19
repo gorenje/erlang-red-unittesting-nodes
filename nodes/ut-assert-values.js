@@ -126,6 +126,16 @@ module.exports = function(RED) {
                unsupported.push(postUnsupported(rule,msg))
             }
           /*
+           * Rule is not equal
+           */
+          } else if (rule.t == "noteql" && rule.pt == "msg" && rule.tot == "msg") {
+            /* comparing two values on the message object */
+            let expObj = RED.util.getObjectProperty(msg, rule.to)
+            let oldObj = RED.util.getObjectProperty(msg, rule.p)
+            if (expObj == oldObj) {
+              failures.push(sendToDebug(node, rule, msg, 20))
+            }
+          /*
            * Other rule types are not supported
            */
           } else {

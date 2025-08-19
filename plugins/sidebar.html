@@ -275,6 +275,7 @@ function sendUnittestngHalt() {
   }).fail((e) => {
     RED.notify("Failed to send halt command", "error")
   });
+  RED.events.emit('unittesting:halting')
 }
 
 function resetTestResultsRow() {

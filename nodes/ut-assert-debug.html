@@ -103,7 +103,7 @@
         }
       });
 
-      let data = RED.nodes.filterNodes({z:RED.workspaces.active()}).filter( n => n.id != this.id ).map( nde =>{
+      let data = RED.nodes.filterNodes({z:RED.workspaces.active()}).filter(n => !n.type.startsWith("ut-assert-")).map( nde =>{
           return { 
             label: RED.utils.getNodeLabel(nde),
             icon: "",
