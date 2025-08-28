@@ -74,7 +74,7 @@ module.exports = function(RED) {
                 failures.push(sendToDebug(node, rule, msg, 20))
               }
             } else if ( rule.tot == "num") {
-              if ( parseInt(rule.to) != parseInt(RED.util.getObjectProperty(msg,rule.p)) ) {
+              if ( rule.to != RED.util.getObjectProperty(msg,rule.p) ) {
                 failures.push(sendToDebug(node, rule, msg, 20))                
               }
             } else if (rule.tot == "bin") {
