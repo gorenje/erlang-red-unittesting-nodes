@@ -1,8 +1,10 @@
 ## Unit testing nodes for Erlang-RED
 
-Node-RED Nodes for testing flow correctness in the [Erlang-RED](https://github.com/gorenje/erlang-red) project.
+Node-RED Nodes for testing flow correctness in the [Erlang-Red](https://github.com/gorenje/erlang-red) project.
 
-These could be thought of the first Erlang-RED-first nodes! They provided limited functionality within Node-RED as they deal with testing of node functionality and nodes are assumed to work in Node-RED.
+These nodes provide the basis for the *unofficial* [Visual Unit Testing Suite (VUTS)](https://github.com/gorenje/erlang-red-flow-testsuite) for Node-RED. The test-suite aims to create a collection of visual unit tests for regression testing of existing behaviour. However the test-suite also provides a proof of correctness for projects that emulate Node-RED behaviour, for example [Erlang-Red](https://github.com/gorenje/erlang-red).
+
+Thus if others wish to implement a Node-RED engine in their favourite language, then implementing these nodes first and then loading this test-suite will provide a good roadmap for further development. For example.
 
 ## Assert Nodes
 
@@ -34,5 +36,3 @@ These nodes have been published because the [Erlang-RED flow testsuite](https://
 - [Node-RED node package](https://flows.nodered.org/node/@gregoriusrippenstein/erlang-red-unittest)
 - [GitHub Repo](https://github.com/gorenje/erlang-red-unittesting-nodes)
 - Node-RED flow that maintains this [codebase](https://flowhub.org/f/ef91cb280e1bfd72).
-
-
