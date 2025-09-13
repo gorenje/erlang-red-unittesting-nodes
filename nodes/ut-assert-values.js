@@ -92,8 +92,15 @@ module.exports = function(RED) {
             } else if (rule.tot == "json") {
               let expObj = JSON.parse(rule.to)
               let oldObj = RED.util.getObjectProperty(msg, rule.p)
-              if ( JSON.stringify(oldObj, Object.keys(oldObj).sort()) != JSON.stringify(expObj, Object.keys(expObj).sort()) ) {
-                failures.push(sendToDebug(node, rule, msg, 20))                
+
+              if ( Array.isArray(expObj)) {
+                if (JSON.stringify(oldObj) != JSON.stringify(expObj)) {
+                  failures.push(sendToDebug(node, rule, msg, 20))
+                }
+              } else {
+                if ( JSON.stringify(oldObj, Object.keys(oldObj).sort()) != JSON.stringify(expObj, Object.keys(expObj).sort()) ) {
+                  failures.push(sendToDebug(node, rule, msg, 20))                
+                }
               }
             } else if (rule.tot == "msg") {
               if ( RED.util.getObjectProperty(msg,rule.to) != RED.util.getObjectProperty(msg,rule.p) ) {
