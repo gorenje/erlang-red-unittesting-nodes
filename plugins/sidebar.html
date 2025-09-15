@@ -537,21 +537,26 @@ $('#node-input-unittestingpull-sb-refresh-list-but').on('click', function (e) {
 window.unitTestDirList = dirList;
 window.fakeTestResult = handleTestResult;
 
-RED.comms.on("connect", () => {
-  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
-  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
-  $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
-});
+if (RED.comms.on) { 
+  // RED.comms.on is not available on NR 3.x
+  RED.comms.on("connect", () => {
+    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
+  });
 
-RED.comms.on("disconnect", () => {
-  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', true)
-  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', true)
-  $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', true)
-});
+  RED.comms.on("disconnect", () => {
+    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', true)
+    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', true)
+    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', true)
+  });
 
-if ( !RED.comms.isConnected || RED.comms.isConnected() ) {
-  $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
-  $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+  if ( !RED.comms.isConnected || RED.comms.isConnected() ) {
+    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
+  }
+} else {
   $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
 }
 
