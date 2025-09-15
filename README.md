@@ -30,6 +30,18 @@ Admittedly the assert status node can be replaced by using a status node followe
 
 These nodes have been published because the [Erlang-RED flow testsuite](https://github.com/gorenje/erlang-red-flow-testsuite) utilises them.
 
+## Actions
+
+This package also defines the following actions that can be mapped to keyboard shortcuts:
+
+- Test Current Workspace: triggers all inject buttons on the current workspace. Might well have undesired consequences if run on incorrect workspaces.
+- Send Halt To Test Server: (Erlang-Red only) restarts the server
+- Run All Tests: (Erlang-Red only) run all defined unit tests.
+
+## Tee Time
+
+<a href="https://www.buymeacoffee.com/gorenje" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Tee" style="height: 42px !important;width: 152px !important;" ></a>
+
 ## Artifacts
 
 - [NPMjs Package](https://www.npmjs.com/package/@gregoriusrippenstein/erlang-red-unittest)
