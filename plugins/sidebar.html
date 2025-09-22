@@ -288,6 +288,7 @@ function sendUnittestngHalt() {
     url: `/UnitTesting/halt?cb=${new Date().getTime()}`
   }).done((resp) => {
     RED.notify(`Halt send successfully`, "success")
+    RED.events.emit('unittesting:server-restarted')
     RED.nodes.dirty(true) // activate deploy button to save the flow to the server.
   }).fail((e) => {
     RED.notify("Failed to send halt command", "error")
