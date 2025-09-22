@@ -277,11 +277,18 @@ function testCurrentWorkspace() {
   }
 }
 
+function triggerInjectsInWorkspace() {
+  // trigger all inject nodes but ignore disabled inject buttons - these show a warning if triggered
+  RED.notify("triggering all enabled inject nodes", { type: "info" });
+  RED.search.search("type:inject flow:current").map(d => d.node).filter(d => !d.d).forEach(d => RED.view.clickNodeButton(d))
+}
+
 function sendUnittestngHalt() {
   $.get({
     url: `/UnitTesting/halt?cb=${new Date().getTime()}`
   }).done((resp) => {
     RED.notify(`Halt send successfully`, "success")
+    RED.nodes.dirty(true) // activate deploy button to save the flow to the server.
   }).fail((e) => {
     RED.notify("Failed to send halt command", "error")
   });
@@ -563,6 +570,7 @@ if (RED.comms.on) {
 RED.actions.add("unittesting:send-halt-to-test-server", sendUnittestngHalt)
 RED.actions.add("unittesting:test-current-workspace", testCurrentWorkspace)
 RED.actions.add("unittesting:run-all-tests", () => { runAllTests(dirList) } )
+RED.actions.add("unittesting:trigger-injects-in-workspace", triggerInjectsInWorkspace)
 
 $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) => {
   e.preventDefault();
