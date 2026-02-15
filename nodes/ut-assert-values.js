@@ -63,118 +63,124 @@ module.exports = function(RED) {
         var failures = [];
         var unsupported = [];
 
-        cfg.rules.forEach(rule => {     
-          /*
-           * Rule is Equal
-           */   
-          if ( rule.t == "eql" && rule.pt == "msg") {
-            if ( rule.tot == "str") {
-              if ( rule.to != escapeSpecials(RED.util.getObjectProperty(msg,rule.p)) ) {
-                rule._vt = escapeSpecials(RED.util.getObjectProperty(msg, rule.p))
-                failures.push(sendToDebug(node, rule, msg, 20))
-              }
-            } else if ( rule.tot == "num") {
-              if ( rule.to != RED.util.getObjectProperty(msg,rule.p) ) {
-                failures.push(sendToDebug(node, rule, msg, 20))                
-              }
-            } else if (rule.tot == "bin") {
-              let expBuffer = Buffer.from(JSON.parse(rule.to));
-              let valBuffer = RED.util.getObjectProperty(msg, rule.p);
-              if ( Buffer.compare( expBuffer, valBuffer) != 0 ) {
-                failures.push(sendToDebug(node, rule, msg, 20))
-              }
-            } else if (rule.tot == "bool") {
-              if ( rule.to == "true" && !RED.util.getObjectProperty(msg, rule.p)) {
-                failures.push(sendToDebug(node, rule, msg, 20))
-              } else if (rule.to == "false" && !!RED.util.getObjectProperty(msg, rule.p) ) {
-                failures.push(sendToDebug(node, rule, msg, 20))
-              }
-            } else if (rule.tot == "json") {
-              let expObj = JSON.parse(rule.to)
-              let oldObj = RED.util.getObjectProperty(msg, rule.p)
+        try {
+          cfg.rules.forEach(rule => {     
+            /*
+            * Rule is Equal
+            */   
+            if ( rule.t == "eql" && rule.pt == "msg") {
+              if ( rule.tot == "str") {
+                if ( rule.to != escapeSpecials(RED.util.getObjectProperty(msg,rule.p)) ) {
+                  rule._vt = escapeSpecials(RED.util.getObjectProperty(msg, rule.p))
+                  failures.push(sendToDebug(node, rule, msg, 20))
+                }
+              } else if ( rule.tot == "num") {
+                if ( rule.to != RED.util.getObjectProperty(msg,rule.p) ) {
+                  failures.push(sendToDebug(node, rule, msg, 20))                
+                }
+              } else if (rule.tot == "bin") {
+                let expBuffer = Buffer.from(JSON.parse(rule.to));
+                let valBuffer = RED.util.getObjectProperty(msg, rule.p);
+                if ( Buffer.compare( expBuffer, valBuffer) != 0 ) {
+                  failures.push(sendToDebug(node, rule, msg, 20))
+                }
+              } else if (rule.tot == "bool") {
+                if ( rule.to == "true" && !RED.util.getObjectProperty(msg, rule.p)) {
+                  failures.push(sendToDebug(node, rule, msg, 20))
+                } else if (rule.to == "false" && !!RED.util.getObjectProperty(msg, rule.p) ) {
+                  failures.push(sendToDebug(node, rule, msg, 20))
+                }
+              } else if (rule.tot == "json") {
+                let expObj = JSON.parse(rule.to)
+                let oldObj = RED.util.getObjectProperty(msg, rule.p)
 
-              if ( Array.isArray(expObj)) {
-                if (JSON.stringify(oldObj) != JSON.stringify(expObj)) {
+                if ( Array.isArray(expObj)) {
+                  if (JSON.stringify(oldObj) != JSON.stringify(expObj)) {
+                    failures.push(sendToDebug(node, rule, msg, 20))
+                  }
+                } else {
+                  if ( JSON.stringify(oldObj, Object.keys(oldObj).sort()) != JSON.stringify(expObj, Object.keys(expObj).sort()) ) {
+                    failures.push(sendToDebug(node, rule, msg, 20))                
+                  }
+                }
+              } else if (rule.tot == "msg") {
+                if ( RED.util.getObjectProperty(msg,rule.to) != RED.util.getObjectProperty(msg,rule.p) ) {
                   failures.push(sendToDebug(node, rule, msg, 20))
                 }
               } else {
-                if ( JSON.stringify(oldObj, Object.keys(oldObj).sort()) != JSON.stringify(expObj, Object.keys(expObj).sort()) ) {
-                  failures.push(sendToDebug(node, rule, msg, 20))                
-                }
+                unsupported.push(postUnsupported(rule,msg))
               }
-            } else if (rule.tot == "msg") {
-              if ( RED.util.getObjectProperty(msg,rule.to) != RED.util.getObjectProperty(msg,rule.p) ) {
+            /*
+            * Rule is not set on message object
+            */
+            } else if (rule.t == "notset" && rule.pt == "msg") {     
+              if (RED.util.getObjectProperty(msg, rule.p) !== undefined) {
                 failures.push(sendToDebug(node, rule, msg, 20))
               }
+            /*
+            * Rule is not set on message object
+            */
+            } else if (rule.t == "set" && rule.pt == "msg") {
+              if (RED.util.getObjectProperty(msg, rule.p) === undefined) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              }
+            /*
+            * Rule is match
+            */
+            } else if ( rule.t == "mth" && rule.pt == "msg") {
+              if (rule.tot == "str") {
+                let reExp = new RegExp(rule.to)
+                if ( !reExp.test(RED.util.getObjectProperty(msg, rule.p)) ) {
+                  failures.push(sendToDebug(node, rule, msg, 20))                
+                }
+              } else {
+                unsupported.push(postUnsupported(rule,msg))
+              }
+            /*
+            * Rule is not equal
+            */
+            } else if (rule.t == "noteql" && rule.pt == "msg" && rule.tot == "msg") {
+              /* comparing two values on the message object */
+              let expObj = RED.util.getObjectProperty(msg, rule.to)
+              let oldObj = RED.util.getObjectProperty(msg, rule.p)
+              if (expObj == oldObj) {
+                failures.push(sendToDebug(node, rule, msg, 20))
+              }
+            /*
+            * Other rule types are not supported
+            */
             } else {
               unsupported.push(postUnsupported(rule,msg))
             }
-          /*
-           * Rule is not set on message object
-           */
-          } else if (rule.t == "notset" && rule.pt == "msg") {     
-            if (RED.util.getObjectProperty(msg, rule.p) !== undefined) {
-              failures.push(sendToDebug(node, rule, msg, 20))
-            }
-          /*
-           * Rule is not set on message object
-           */
-          } else if (rule.t == "set" && rule.pt == "msg") {
-            if (RED.util.getObjectProperty(msg, rule.p) === undefined) {
-              failures.push(sendToDebug(node, rule, msg, 20))
-            }
-          /*
-           * Rule is match
-           */
-          } else if ( rule.t == "mth" && rule.pt == "msg") {
-            if (rule.tot == "str") {
-              let reExp = new RegExp(rule.to)
-              if ( !reExp.test(RED.util.getObjectProperty(msg, rule.p)) ) {
-                failures.push(sendToDebug(node, rule, msg, 20))                
-              }
-            } else {
-               unsupported.push(postUnsupported(rule,msg))
-            }
-          /*
-           * Rule is not equal
-           */
-          } else if (rule.t == "noteql" && rule.pt == "msg" && rule.tot == "msg") {
-            /* comparing two values on the message object */
-            let expObj = RED.util.getObjectProperty(msg, rule.to)
-            let oldObj = RED.util.getObjectProperty(msg, rule.p)
-            if (expObj == oldObj) {
-              failures.push(sendToDebug(node, rule, msg, 20))
-            }
-          /*
-           * Other rule types are not supported
-           */
-          } else {
-             unsupported.push(postUnsupported(rule,msg))
-          }
-        })
+          })
 
-        if (node.context().get("succeed") && cfg.ignore_failure_if_succeed) {
-          node.status({ fill: "green", shape: "ring", text: "assert succeed" })
-        } else {
-          if (failures.length > 0 ) {
-            node.status({fill: "red", shape: "dot", text: "assert failed"})
-            msg.assert_succeed = false
-            msg.assert_failures = failures.concat(unsupported)            
+          if (node.context().get("succeed") && cfg.ignore_failure_if_succeed) {
+            node.status({ fill: "green", shape: "ring", text: "assert succeed" })
           } else {
-            if ( unsupported.length > 0) {
-              node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
+            if (failures.length > 0 ) {
+              node.status({fill: "red", shape: "dot", text: "assert failed"})
               msg.assert_succeed = false
-              msg.assert_failures = failures.concat( unsupported )
+              msg.assert_failures = failures.concat(unsupported)            
             } else {
-              node.context().set("succeed",true)
-              node.status({ fill: "green", shape: "ring", text: "assert succeed" })
-              msg.assert_succeed = true
-              delete msg.assert_failures
+              if ( unsupported.length > 0) {
+                node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
+                msg.assert_succeed = false
+                msg.assert_failures = failures.concat( unsupported )
+              } else {
+                node.context().set("succeed",true)
+                node.status({ fill: "green", shape: "ring", text: "assert succeed" })
+                msg.assert_succeed = true
+                delete msg.assert_failures
+              }
             }
           }
+          send(msg);
+          done();
+        } catch ( e ) {
+          node.status({ fill: "red", shape: "ring", text: "exception see log" })
+          done()
+          throw(e) // re-raise so that exception appears in the debug log
         }
-        send(msg);
-        done();
     });
   }
 
