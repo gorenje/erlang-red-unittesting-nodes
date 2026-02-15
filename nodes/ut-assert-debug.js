@@ -11,25 +11,26 @@ module.exports = function(RED) {
 
     /* msg handler, in this case pass the message on unchanged */
     node.on("input", function(msg, send, done) {
-        // How to send a status update
-        node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-debug.label.statusset") });
-
-        // Send a message and how to handle errors.
+      // How to send a status update
+      node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-debug.label.statusset") });
+      setTimeout(() => { node.status({}); }, 1000)
+      
+      // Send a message and how to handle errors.
+      try {
         try {
-          try {
-            send(msg);
-            done();
-          } catch ( err ) {
-            // use node.error if the node might send subsequent messages
-            node.error("error occurred", { ...msg, error: err })
-            done();
-          }
-        } catch (err) {
-          // use done if the node won't send anymore messages for the
-          // message it received.
-          msg.error = err
-          done(err.message, msg)
+          send(msg);
+          done();
+        } catch ( err ) {
+          // use node.error if the node might send subsequent messages
+          node.error("error occurred", { ...msg, error: err })
+          done();
         }
+      } catch (err) {
+        // use done if the node won't send anymore messages for the
+        // message it received.
+        msg.error = err
+        done(err.message, msg)
+      }
     });
   }
 

@@ -18,6 +18,7 @@ module.exports = function(RED) {
         // How to send a status update
         if ( (cfg.count || 1) == msgcnt) {
           node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-success.label.succeed") });
+          setTimeout(() => { node.status({}); }, 1000)
         } else {
           node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${msgcnt}`});
         }

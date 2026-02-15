@@ -156,6 +156,7 @@ module.exports = function(RED) {
 
           if (node.context().get("succeed") && cfg.ignore_failure_if_succeed) {
             node.status({ fill: "green", shape: "ring", text: "assert succeed" })
+            setTimeout(() => { node.status({}); }, 1000)
           } else {
             if (failures.length > 0 ) {
               node.status({fill: "red", shape: "dot", text: "assert failed"})
@@ -169,6 +170,8 @@ module.exports = function(RED) {
               } else {
                 node.context().set("succeed",true)
                 node.status({ fill: "green", shape: "ring", text: "assert succeed" })
+                setTimeout(() => { node.status({}); }, 1000)
+                
                 msg.assert_succeed = true
                 delete msg.assert_failures
               }
