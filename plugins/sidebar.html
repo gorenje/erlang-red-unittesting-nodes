@@ -72,7 +72,7 @@
   }
 
   $.get({
-    url: "/UnitTesting/tests.json?cb=" + new Date().getTime(),
+    url: "UnitTesting/tests.json?cb=" + new Date().getTime(),
   }).done((resp) => {
     handleResponse(resp)
   }).fail((e) => {
@@ -92,7 +92,7 @@ function doFlowImportForSidebarUnittesting(flowid) {
     });
 
     $.get({
-      url: "/UnitTesting/" + flowid + "/retrieve?cb=" + new Date().getTime(),
+      url: "UnitTesting/" + flowid + "/retrieve?cb=" + new Date().getTime(),
       headers: {
       }
     }).done((e, d) => {
@@ -250,7 +250,7 @@ function runTestForFlowId(flowid,dirList=undefined) {
     }
     
     $.get({
-      url: `/UnitTesting/${flowid}/runtest?${params}`
+      url: `UnitTesting/${flowid}/runtest?${params}`
     }).done((resp) => {
       RED.notify(`Triggered test run for ${flowid}`, "success")
       $('#node-input-unittestingpull-testresults-row').find(".todo").html(resp.todo)
@@ -285,7 +285,7 @@ function triggerInjectsInWorkspace() {
 
 function sendUnittestngHalt() {
   $.get({
-    url: `/UnitTesting/halt?cb=${new Date().getTime()}`
+    url: `UnitTesting/halt?cb=${new Date().getTime()}`
   }).done((resp) => {
     RED.notify(`Halt send successfully`, "success")
     RED.events.emit('unittesting:server-restarted')
@@ -326,7 +326,7 @@ function runAllTests(dirList) {
     }
 
     $.get({
-      url: `/UnitTesting/all/runtest?${params}`
+      url: `UnitTesting/all/runtest?${params}`
     }).done((resp) => {
       RED.notify(`${resp.todo} tests have been triggered`, "success")
       $('#node-input-unittestingpull-testresults-row').find(".todo").html(resp.todo)
