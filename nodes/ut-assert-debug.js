@@ -57,29 +57,38 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
     } else {
       fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid) ).forEach(filename => {
         let flowDetails = JSON.parse(fs.readFileSync(filename))
-        let flowId = req.params.flowid
+        let origFlowId = req.params.flowid
 
         let tabNode = flowDetails.filter( d => d.type == "tab")[0]
         let nonTabNodes = flowDetails.filter(d => d.type != "tab")
+        let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
 
         let details = {
           ...tabNode,
           nodes: nonTabNodes,
         }
 
-        /*
-        runtime._.flows.updateFlow(flowId, details, "root").then( _ignore => {
-          runtime._.flows.removeFlow(flowId, "root").then( _alsoIgnore => {
-            RED.comms.publish("unittesting:testresults", {
-              flowid: path.basename(path.parse(filename).dir),
-              status: "success"
+        runtime._.flows.addFlow(details, "root").then(newFlowId => {
+          runtime._.flows.startFlows("full", null, false, true).then( d => {
+            console.log(`started flows: ${d}`)
+
+            injNodesIds.forEach(ndeId => {
+              console.log(`GetInjectnode: ${ndeId} => ${runtime._.flows.get(ndeId)}`)
+
+              console.log(RED.nodes.getNode(ndeId).receive())
             })
+
+            setTimeout( () => {
+              runtime._.flows.removeFlow(newFlowId, "root").then(result => {
+                console.log(`remove flow: ${result}`)
+
+                RED.comms.publish("unittesting:testresults", {
+                  flowid: origFlowId,
+                  status: "success"
+                })
+              })
+            }, 10000)
           })
-        })
-        */
-        RED.comms.publish("unittesting:testresults", {
-          flowid: path.basename(path.parse(filename).dir),
-          status: "success"
         })
       })
     }
@@ -87,6 +96,8 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
 
 RED.httpAdmin.get("/UnitTesting/halt",
   (req, res) => {
+    var runtime = require("@node-red/runtime");
+    runtime._.flows.stopFlows()
     res.sendStatus(200);
   });
 
