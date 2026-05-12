@@ -413,7 +413,6 @@ var dirList = $("#node-input-unittestingpull-sb-target-container-div").css({
   }
 });
 
-
 var search = $("#node-input-unittestingpull-sb-target-filter").searchBox({
   style: "compact",
   delay: 300,
@@ -478,7 +477,6 @@ $('#node-input-unittestingpull-sb-test-workspace-but').on('click', function (e) 
   e.preventDefault();
   testCurrentWorkspace()
 })
-
 
 let handleTestResult = (event, data) => {
   if (data.flowid) {
@@ -586,6 +584,25 @@ $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) 
   }
 })
 
+$('#node-input-unittestingselect-test-node').on('click', (e) => {
+  if (e) e.preventDefault();
+
+  let sltd = dirList.treeList('selected')
+
+  if (sltd.flowid) {
+    let nodeIds = RED.search.search(`${sltd.flowid}/flows.json flow:current`).map(d => d.node.id)
+    let currSelection = (RED.view.selection().nodes || []).map(d => d.id)
+
+    RED.view.select({ nodes: nodeIds.concat(currSelection).map(n => RED.nodes.node(n)) }) 
+  } else if (sltd.children) {
+
+    let slNodes = sltd.children.map(d => d.flowid).map(d => 
+         RED.search.search(`${d}/flows.json flow:current`).map(srchResult => srchResult.node.id) 
+      ).flat().concat((RED.view.selection().nodes || []).map(d => d.id))
+
+    RED.view.select({ nodes: slNodes.map(n => RED.nodes.node(n)) }) 
+  }
+})
    };
    
    RED.events.on('runtime-state', initialiseConfigNodeOnce);
@@ -671,6 +688,11 @@ $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) 
                   class="red-ui-button">Collapse</button>
          <button id="node-input-unittestingpull-clear-debug-panel-but"
                   class="red-ui-button">Clear Debug Panel</button>
+      </div>
+
+      <div class="form-row" style="margin-left: 10px;">
+         <button id="node-input-unittestingselect-test-node"
+                        class="red-ui-button">Select</button>
       </div>
    </div>
 
