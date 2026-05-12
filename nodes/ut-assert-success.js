@@ -21,6 +21,10 @@ module.exports = function(RED) {
           setTimeout(() => { node.status({}); }, 1000)
         } else {
           node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${msgcnt}`});
+          RED.comms.publish("unittesting:testresults", {
+            flowid: msg._original_flow_id || node.z,
+            status: "failed"
+          })
         }
         
         // Send a message and how to handle errors.

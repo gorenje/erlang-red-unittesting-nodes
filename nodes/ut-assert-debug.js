@@ -70,24 +70,24 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
 
         runtime._.flows.addFlow(details, "root").then(newFlowId => {
           runtime._.flows.startFlows("full", null, false, true).then( d => {
-            console.log(`started flows: ${d}`)
+            console.log("Triggering inject nodes")
 
-            injNodesIds.forEach(ndeId => {
-              console.log(`GetInjectnode: ${ndeId} => ${runtime._.flows.get(ndeId)}`)
-
-              console.log(RED.nodes.getNode(ndeId).receive())
-            })
+            setTimeout(() => {
+              injNodesIds.forEach(ndeId => {
+                RED.nodes.getNode(ndeId).receive({"_original_flow_id": origFlowId})
+              })
+            }, 500)
 
             setTimeout( () => {
               runtime._.flows.removeFlow(newFlowId, "root").then(result => {
-                console.log(`remove flow: ${result}`)
-
+                /*
                 RED.comms.publish("unittesting:testresults", {
                   flowid: origFlowId,
                   status: "success"
                 })
+                */
               })
-            }, 10000)
+            }, 5000)
           })
         })
       })

@@ -1,0 +1,56 @@
+[
+    {
+        "id": "3f26894f4de6db8a",
+        "type": "tab",
+        "label": "[test] sanity check - compare false",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c663a8209c41fedd",
+        "type": "ut-assert-values",
+        "z": "3f26894f4de6db8a",
+        "name": "",
+        "ignore_failure_if_succeed": false,
+        "rules": [
+            {
+                "t": "eql",
+                "p": "payload",
+                "pt": "msg",
+                "to": "42",
+                "tot": "num"
+            }
+        ],
+        "x": 435,
+        "y": 284.666748046875,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "44215530f1ea58b7",
+        "type": "inject",
+        "z": "3f26894f4de6db8a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "23",
+        "payloadType": "num",
+        "x": 177.66650390625,
+        "y": 114.999755859375,
+        "wires": [
+            [
+                "c663a8209c41fedd"
+            ]
+        ]
+    }
+]

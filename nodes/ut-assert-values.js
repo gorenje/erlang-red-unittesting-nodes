@@ -33,7 +33,8 @@ module.exports = function(RED) {
 
       msg = RED.util.encodeObject(msg);
       if (!cfg.ignore_failure_if_succeed) {
-        RED.comms.publish("debug", msg);
+        // don't post debug, causes error in the editor.
+        // RED.comms.publish("debug", msg);
       }
      } catch (ex) {
       console.error(ex)
@@ -45,7 +46,12 @@ module.exports = function(RED) {
       node.status({ fill: "red", shape: "dot", 
                       text: RED._("ut-assert-values.label.unsupported", { property: JSON.stringify(rule) }) });
       sendToDebug(node, rule, msg, 30)
-      
+
+      RED.comms.publish("unittesting:testresults", {
+        flowid: msg._original_flow_id || node.z,
+        status: "pending"
+      })
+
       return ["unsupported", rule]
     }
 
@@ -161,12 +167,23 @@ module.exports = function(RED) {
             if (failures.length > 0 ) {
               node.status({fill: "red", shape: "dot", text: "assert failed"})
               msg.assert_succeed = false
-              msg.assert_failures = failures.concat(unsupported)            
+              msg.assert_failures = failures.concat(unsupported)
+
+              RED.comms.publish("unittesting:testresults", {
+                flowid: msg._original_flow_id || node.z,
+                status: "failed"
+              })            
             } else {
               if ( unsupported.length > 0) {
                 node.status({ fill: "yellow", shape: "ring", text: "unsupported errors - check debug" })
                 msg.assert_succeed = false
                 msg.assert_failures = failures.concat( unsupported )
+
+                RED.comms.publish("unittesting:testresults", {
+                  flowid: msg._original_flow_id || node.z,
+                  status: "pending"
+                })            
+
               } else {
                 node.context().set("succeed",true)
                 node.status({ fill: "green", shape: "ring", text: "assert succeed" })

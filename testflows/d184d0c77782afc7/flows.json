@@ -2,7 +2,7 @@
     {
         "id": "d184d0c77782afc7",
         "type": "tab",
-        "label": "[test] sanity check",
+        "label": "[test] sanity check - assert false",
         "disabled": false,
         "info": "",
         "env": []
@@ -21,35 +21,28 @@
                 "vt": "str"
             }
         ],
-        "repeat": "1",
+        "repeat": "",
         "crontab": "",
-        "once": true,
+        "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 1241.25,
+        "x": 1231.25,
         "y": 1472.5,
         "wires": [
             [
-                "c2a456e9cb3fa097"
+                "fc06abb9107b5764"
             ]
         ]
     },
     {
-        "id": "c2a456e9cb3fa097",
-        "type": "debug",
+        "id": "fc06abb9107b5764",
+        "type": "ut-assert-failure",
         "z": "d184d0c77782afc7",
-        "name": "debug 27",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 2081.25,
-        "y": 1480,
+        "name": "",
+        "x": 1539,
+        "y": 1385.3333740234375,
         "wires": []
     }
 ]
