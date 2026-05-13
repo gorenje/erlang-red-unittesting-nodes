@@ -169,6 +169,7 @@ function resetTestResultsForFlowId(dirList,flowid) {
 
 function removeTestResultsForFlow(dirList,listid) {
   dirList.treeList('select', listid)
+  $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status", "waiting")
   $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', 'fa fa-minus').css('color', '')
 }
 
@@ -180,9 +181,12 @@ function removeAllTestResults(dirList) {
   })
 }
 
-function highlightTestResult(dirList, flowid, status) {
+function currentStatusIsWaiting(dirList, flowid) {
   dirList.treeList('select', `flowid-treelist-${flowid}`);
+  return $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status") == "waiting"
+}
 
+function highlightTestResult(dirList, flowid, status) {
   let clr = "green"
   let shp = "fa-check"
 
@@ -195,8 +199,13 @@ function highlightTestResult(dirList, flowid, status) {
       clr = "red";
       shp = "fa-remove";
       break;
+    case "waiting":
+      clr = "";
+      shp = "fa-minus";
+      break;
   }
 
+  dirList.treeList('select', `flowid-treelist-${flowid}`);
   $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status", status)
   $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', "fa " + shp).css('color', clr)
 }
@@ -248,7 +257,13 @@ function runTestForFlowId(flowid,dirList=undefined) {
     } else {
       params = `${params}&testpend=false`
     }
-    
+
+    // reveal tab with the test flow if it's in the editor
+    if (RED.nodes.workspace(flowid)) {
+      RED.notify("Switching to test tab", { type: "warning" });
+      RED.view.reveal(flowid)
+    } 
+
     $.get({
       url: `UnitTesting/${flowid}/runtest?${params}`
     }).done((resp) => {
@@ -488,6 +503,11 @@ let handleTestResult = (event, data) => {
       return
     }
 
+    if ( data.status == "stopped") {
+      handledStoppedStatus(data)
+      return
+    }
+
     RED.notify("Test result for flowid " + data.flowid + ": " + data.status, {
       type: data.status == "failed" ? "error" : (data.status == "pending" ? "warning" : "success"),
       timeout: (data.status == "failed" || data.status == "pending") ? 3000 : 2000
@@ -506,6 +526,17 @@ let handleTestResult = (event, data) => {
     highlightTestResult(dirList, data.flowid, data.status);
   }
 }
+
+// special handler that first checks whether there has already
+// been a result (failed or succeed) for a flowid. If yes, then 
+// ignore this event. If not, the assume it was a success event.
+let handledStoppedStatus = (data) => {
+  if (currentStatusIsWaiting(dirList, data.flowid)) {
+    data.status = "success"
+    handleTestResult(undefined, data)
+  }
+}
+
 RED.comms.subscribe('unittesting:testresults', handleTestResult);
 
 $('#node-input-unittestingpull-expand-all-but').on('click', function (e) {

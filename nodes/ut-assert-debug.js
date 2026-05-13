@@ -55,7 +55,7 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
         })
       })
     } else {
-      fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid) ).forEach(filename => {
+      fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid)).forEach(filename => {
         let flowDetails = JSON.parse(fs.readFileSync(filename))
         let origFlowId = req.params.flowid
 
@@ -63,33 +63,79 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
         let nonTabNodes = flowDetails.filter(d => d.type != "tab")
         let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
 
+        // add an catch all and trigger a assert false if any exceptions are
+        // raised by the test - if there isn't already a catch all node.
+        if (nonTabNodes.filter(d => d.type == "catch").filter(d => d.scope == null).length == 0) {
+          var redUtil = require("@node-red/util").util;
+          let assertId = redUtil.generateId()
+
+          let extraCatchAll = [
+            {
+              "id": redUtil.generateId(),
+              "type": "catch",
+              "name": "",
+              "scope": null,
+              "uncaught": true, // ignore exceptions caught by other catch nodes
+              "wires": [
+                [
+                  assertId
+                ]
+              ]
+            },
+            {
+              "id": assertId,
+              "type": "ut-assert-failure",
+              "name": "",
+              "wires": []
+            }
+          ]
+
+          nonTabNodes = nonTabNodes.concat(extraCatchAll)
+        }
+
         let details = {
           ...tabNode,
           nodes: nonTabNodes,
         }
 
-        runtime._.flows.addFlow(details, "root").then(newFlowId => {
-          runtime._.flows.startFlows("full", null, false, true).then( d => {
-            console.log("Triggering inject nodes")
+        // if flow already exists, then just trigger the inject nodes
+        if (runtime._.flows.getFlow(origFlowId)) {
+          setTimeout(() => {
+            injNodesIds.forEach(ndeId => {
+              RED.nodes.getNode(ndeId)?.receive({ "_original_flow_id": origFlowId })
+            })
+          }, 500)
 
-            setTimeout(() => {
-              injNodesIds.forEach(ndeId => {
-                RED.nodes.getNode(ndeId).receive({"_original_flow_id": origFlowId})
-              })
-            }, 500)
-
-            setTimeout( () => {
-              runtime._.flows.removeFlow(newFlowId, "root").then(result => {
-                /*
-                RED.comms.publish("unittesting:testresults", {
-                  flowid: origFlowId,
-                  status: "success"
+          setTimeout(() => {
+            // tell the frontend that we've done with the test. If no 
+            // status has been posted for the unit test, then it succeeds.                
+            RED.comms.publish("unittesting:testresults", {
+              flowid: origFlowId,
+              status: "stopped"
+            })
+          }, 5000)
+        } else {
+          runtime._.flows.addFlow(details, "root").then(newFlowId => {
+            runtime._.flows.startFlows("full", null, false, true).then( d => {
+              setTimeout(() => {
+                injNodesIds.forEach(ndeId => {
+                  RED.nodes.getNode(ndeId)?.receive({"_original_flow_id": origFlowId})
                 })
-                */
-              })
-            }, 5000)
+              }, 500)
+
+              setTimeout( () => {
+                runtime._.flows.removeFlow(newFlowId, "root").then(result => {
+                  // tell the frontend that we've done with the test. If no 
+                  // status has been posted for the unit test, then it succeeds.                
+                  RED.comms.publish("unittesting:testresults", {
+                    flowid: origFlowId,
+                    status: "stopped" 
+                  })
+                })
+              }, 5000)
+            })
           })
-        })
+        }
       })
     }
   });
