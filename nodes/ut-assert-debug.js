@@ -43,58 +43,215 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
     const fs = require('fs')
     let testDir = path.resolve(path.dirname(__filename), "..", "testflows")
 
-    res.sendStatus(200);
-
+    // API defined here --> https://github.com/node-red/node-red/blob/master/packages/node_modules/%40node-red/runtime/lib/index.js
     var runtime = require("@node-red/runtime");
 
+    let createExtraCatchNode = () => {
+      let assertId = runtime.util.generateId()
+      return [
+        {
+          "id": runtime.util.generateId(),
+          "type": "catch",
+          "name": "",
+          "scope": null,
+          "uncaught": true, // ignore exceptions caught by other catch nodes
+          "wires": [
+            [
+              assertId
+            ]
+          ]
+        },
+        {
+          "id": assertId,
+          "type": "ut-assert-failure",
+          "name": "",
+          "wires": []
+        }
+      ]
+    }
+
+    let isTestPending = (tabDetails) => {
+      return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
+    }
+
     if (req.params.flowid == "all") {
-      fs.globSync(`${testDir}/**/*.json`).forEach(filename => {
-        RED.comms.publish("unittesting:testresults", {
-          flowid: path.basename(path.parse(filename).dir),
-          status: "success"
+      //
+      // Run all tests. This is a little more complicated as this runs all tests in batches
+      // of ten tests at a time but these have to be added in serial and also removed in 
+      // serial, so there has to be promise handling ... and that makes this stuff a little
+      // more complicated.
+      //
+      let chunky = (array, size) => {
+        const chunkedArray = [];
+        for (let i = 0; i < array.length; i += size) {
+          chunkedArray.push(array.slice(i, i + size));
+        }
+        return chunkedArray;
+      }
+
+      // chunk into blocks of 10 flows and then test in blocks of ten.
+      let chunkedFilenames = chunky(fs.globSync(`${testDir}/**/*.json`), 10)
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: "ok", todo: fs.globSync(`${testDir}/**/*.json`).length}));
+
+      let runTestsForFileNames = (fileIdx) => {
+        if (fileIdx >= chunkedFilenames.length) { return }
+
+        // test all is a multi step process, first we have to add all flows to the main show
+        // then we have to trigger them and finally we have to remove those that weren't
+        // there in the first place.
+        let flowIdsToBeRemoved = []
+        let originalToNewFlowId = {}
+        let injNodesToBeTriggered = {}
+
+        let timeoutValues = []
+
+        let flowsToAdd = chunkedFilenames[fileIdx].map((filename) => {
+          
+          let origFlowId = path.basename(path.parse(filename).dir)
+
+          let flowDetails = JSON.parse(fs.readFileSync(filename))
+          let tabDetails = flowDetails.filter(d => d.type == "tab")[0]
+          let nonTabNodes = flowDetails.filter(d => d.type != "tab")
+          let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
+          
+          RED.log.info(`unittest: adding test case [${origFlowId}] - '${tabDetails.label}'`)
+
+          if (isTestPending(tabDetails)) {
+            RED.comms.publish("unittesting:testresults", {
+              flowid: origFlowId,
+              status: "pending"
+            })
+            return null
+          }
+
+          // compute any timeout that is defined for the flow test
+          tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach( d => {
+            timeoutValues.push(parseInt(d.value) * 1000)
+          })
+
+          // add an catch all and trigger a assert false if any exceptions are
+          // raised by the test - if there isn't already a catch all node.
+          if (nonTabNodes.filter(d => d.type == "catch").filter(d => d.scope == null).length == 0) {
+            nonTabNodes = nonTabNodes.concat(createExtraCatchNode())
+          }
+
+          let details = {
+            ...tabDetails,
+            nodes: nonTabNodes,
+          }
+
+          if (runtime._.flows.getFlow(origFlowId)) {
+            RED.log.debug(`unittest: using existing flowid ${origFlowId} ==> ${origFlowId}`)
+            originalToNewFlowId[origFlowId] = origFlowId
+            injNodesToBeTriggered[origFlowId] = injNodesIds.map(d => d)
+            return null
+          } else {
+            return {
+              injNodesIds: injNodesIds, origFlowId: origFlowId, details: details
+            }
+          }
+        }).filter(d => !!d)
+
+        // addFlow is a promise but I want to add flows in series not parallel, so the
+        // promise returns a promise that adds the next flow after the initial flow
+        // has been added. It's promises all the way down - until the turtles start.
+        let addFlow = (idx) => {
+          if (idx >= flowsToAdd.length) { return }
+          var { injNodesIds, origFlowId, details } = flowsToAdd[idx]
+
+          return runtime._.flows.addFlow(details, "root")
+            .then(newFlowId => {
+              RED.log.debug(`unittest: new flowid [${newFlowId}] for test [${origFlowId}]`)
+              originalToNewFlowId[newFlowId] = origFlowId
+              injNodesToBeTriggered[newFlowId] = injNodesIds.map(d => d)
+              flowIdsToBeRemoved.push(newFlowId)
+            })
+            .catch(e => { RED.log.error(e); RED.log.error(`Exception happened with ${origFlowId}`) })
+            .finally(() => addFlow(idx + 1))
+        }
+
+        Promise.all([addFlow(0)]).then(() => {
+          RED.log.debug("unittest: done adding all flows")
+
+          runtime._.flows.startFlows("full", null, false, true).then(d => {
+            Object.keys(injNodesToBeTriggered).forEach(flowId => {
+              injNodesToBeTriggered[flowId].forEach(ndeId => {
+                RED.log.info(`unittest: triggering inject node: ${ndeId}`)
+                RED.nodes.getNode(ndeId)?.receive({"_original_flow_id": originalToNewFlowId[flowId]})
+              })
+            })
+
+            let removeFlow = (idx) => {
+              if (idx >= flowIdsToBeRemoved.length) { return }
+              let flowid = flowIdsToBeRemoved[idx]
+
+              return runtime._.flows.removeFlow(flowid, "root")
+                .then((_ignore) => {
+                  RED.comms.publish("unittesting:testresults", {
+                    flowid: originalToNewFlowId[flowid],
+                    status: "stopped"
+                  })
+                })
+                .catch(e => {
+                  RED.log.error(e);
+                  RED.log.error(`Error happened removing flow ${flowid}`)
+                  RED.comms.publish("unittesting:testresults", {
+                    flowid: originalToNewFlowId[flowid],
+                    status: "stopped"
+                  })
+                })
+                .finally(() => removeFlow(idx + 1))
+            }
+
+            setTimeout(() => {
+              Promise.all([removeFlow(0)]).then(() => {
+                RED.log.debug("unittest: removed all flows")
+                runTestsForFileNames(fileIdx+1)
+              })
+            }, Math.max(...(timeoutValues.concat([5000]))))
+          })
         })
-      })
+      }
+      runTestsForFileNames(0)
     } else {
+
+      res.sendStatus(200);
+
+      //
+      // run a single unit test but ensure that the test case does exist on disk
+      //
       fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid)).forEach(filename => {
         let flowDetails = JSON.parse(fs.readFileSync(filename))
         let origFlowId = req.params.flowid
 
-        let tabNode = flowDetails.filter( d => d.type == "tab")[0]
+        let tabDetails = flowDetails.filter(d => d.type == "tab")[0]
         let nonTabNodes = flowDetails.filter(d => d.type != "tab")
         let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
 
+        let timeoutValues = []
+
+        if (isTestPending(tabDetails)) {
+          RED.comms.publish("unittesting:testresults", {
+            flowid: origFlowId,
+            status: "pending"
+          })
+          return null
+        }
+
+        // compute any timeout that is defined for the flow test
+        tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach(d => {
+          timeoutValues.push(parseInt(d.value) * 1000)
+        })
         // add an catch all and trigger a assert false if any exceptions are
         // raised by the test - if there isn't already a catch all node.
         if (nonTabNodes.filter(d => d.type == "catch").filter(d => d.scope == null).length == 0) {
-          var redUtil = require("@node-red/util").util;
-          let assertId = redUtil.generateId()
-
-          let extraCatchAll = [
-            {
-              "id": redUtil.generateId(),
-              "type": "catch",
-              "name": "",
-              "scope": null,
-              "uncaught": true, // ignore exceptions caught by other catch nodes
-              "wires": [
-                [
-                  assertId
-                ]
-              ]
-            },
-            {
-              "id": assertId,
-              "type": "ut-assert-failure",
-              "name": "",
-              "wires": []
-            }
-          ]
-
-          nonTabNodes = nonTabNodes.concat(extraCatchAll)
+          nonTabNodes = nonTabNodes.concat(createExtraCatchNode())
         }
 
         let details = {
-          ...tabNode,
+          ...tabDetails,
           nodes: nonTabNodes,
         }
 
@@ -113,26 +270,26 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
               flowid: origFlowId,
               status: "stopped"
             })
-          }, 5000)
+          }, Math.max(...(timeoutValues.concat([5000]))))
         } else {
           runtime._.flows.addFlow(details, "root").then(newFlowId => {
-            runtime._.flows.startFlows("full", null, false, true).then( d => {
+            runtime._.flows.startFlows("full", null, false, true).then(d => {
               setTimeout(() => {
                 injNodesIds.forEach(ndeId => {
-                  RED.nodes.getNode(ndeId)?.receive({"_original_flow_id": origFlowId})
+                  RED.nodes.getNode(ndeId)?.receive({ "_original_flow_id": origFlowId })
                 })
               }, 500)
 
-              setTimeout( () => {
+              setTimeout(() => {
                 runtime._.flows.removeFlow(newFlowId, "root").then(result => {
                   // tell the frontend that we've done with the test. If no 
                   // status has been posted for the unit test, then it succeeds.                
                   RED.comms.publish("unittesting:testresults", {
                     flowid: origFlowId,
-                    status: "stopped" 
+                    status: "stopped"
                   })
                 })
-              }, 5000)
+              }, Math.max(...(timeoutValues.concat([5000]))))
             })
           })
         }

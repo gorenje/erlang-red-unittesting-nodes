@@ -6,11 +6,15 @@ module.exports = function (RED) {
     var cfg = config;
 
     node.on('close', function () {
-      if (cfg.count != node.context().get("msgcnt")) {
+      // a count of zero means that any number of messages is success.
+      if ( (cfg.count != 0 && cfg.count != node.context().get("msgcnt")) || 
+           (cfg.count == 0 && (node.context().get("msgcnt") || 0) == 0)
+      ) {
         RED.comms.publish("unittesting:testresults", {
-          flowid: node.context().get("flowid"),
+          flowid: node.context().get("flowid") || node.z,
           status: "failed"
         })
+        node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${node.context().get("msgcnt")}` });
       }
 
       node.context().set("msgcnt", 0)
@@ -28,7 +32,7 @@ module.exports = function (RED) {
         node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-success.label.succeed") });
         setTimeout(() => { node.status({}); }, 1000)
       } else {
-        node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${msgcnt}` });
+        // node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${msgcnt}` });
       }
 
       // Send a message and how to handle errors.

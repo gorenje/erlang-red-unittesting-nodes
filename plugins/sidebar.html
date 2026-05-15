@@ -452,7 +452,8 @@ var search = $("#node-input-unittestingpull-sb-target-filter").searchBox({
         });        
       } else if (val == "is:untested" || val == "is:todo") { 
         count = dirList.treeList("filter", function (item) {
-          return !$($(item.treeList.container).find('.red-ui-treeList-icon')).data("status")
+          return ( $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "waiting" ||
+                      $($(item.treeList.container).find('.red-ui-treeList-icon')).data("status") == "")
         });        
       } else if (val == "is:tested") {
         count = dirList.treeList("filter", function (item) {
@@ -615,6 +616,25 @@ $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) 
   }
 })
 
+$('#node-input-unittestingselect-one-test-node').on('click', (e) => {
+  if (e) e.preventDefault();
+
+  let sltd = dirList.treeList('selected')
+
+  if (sltd.flowid) {
+    let nodeIds = RED.search.search(`${sltd.flowid}/flows.json flow:current`).map(d => d.node.id)
+
+    RED.view.select({ nodes: nodeIds.map(n => RED.nodes.node(n)) })
+  } else if (sltd.children) {
+
+    let slNodes = sltd.children.map(d => d.flowid).map(d =>
+      RED.search.search(`${d}/flows.json flow:current`).map(srchResult => srchResult.node.id)
+    ).flat()
+
+    RED.view.select({ nodes: slNodes.map(n => RED.nodes.node(n)) })
+  }
+})
+
 $('#node-input-unittestingselect-test-node').on('click', (e) => {
   if (e) e.preventDefault();
 
@@ -723,7 +743,9 @@ $('#node-input-unittestingselect-test-node').on('click', (e) => {
 
       <div class="form-row" style="margin-left: 10px;">
          <button id="node-input-unittestingselect-test-node"
-                        class="red-ui-button">Select</button>
+                        class="red-ui-button">Select All</button>
+         <button id="node-input-unittestingselect-one-test-node"
+                        class="red-ui-button">Select One</button>
       </div>
    </div>
 
