@@ -5,6 +5,14 @@ module.exports = function(RED) {
     var node = this;
     var cfg = config;
  
+
+    //
+    // 
+    // Helper Code
+    //
+    //
+
+
     /*
     * Note to self: getMessageProperty(..) and getObjectProperty(...) only differ in that
     * getMessageProperty will remove any 'msg.' prefix from the property name. This is not
@@ -16,7 +24,6 @@ module.exports = function(RED) {
     *
     *  getObjectProperty will return undefined if a property isn't set.
     */
-
 
     var sendToDebug = (nde,rule,msgc,lvl) => {
      try {
@@ -35,8 +42,12 @@ module.exports = function(RED) {
       if (!cfg.ignore_failure_if_succeed) {
         // don't post debug, causes error in the editor because the flow does not 
         // exist in the workspace of the editor - flow is loaded in the backend only.
-        if (!msg._original_flow_id) {
+        if (!msg._unittest_triggered) {
           RED.comms.publish("debug", msg);
+        } else {
+          // send details to the console.
+          node.log(`ASSERT FAILURE [${node.z}] assert values failed`)
+          console.log(msg)
         }
       }
      } catch (ex) {
@@ -51,7 +62,7 @@ module.exports = function(RED) {
       sendToDebug(node, rule, msg, 30)
 
       RED.comms.publish("unittesting:testresults", {
-        flowid: msg._original_flow_id || node.z,
+        flowid: node.z,
         status: "pending"
       })
 
@@ -62,23 +73,48 @@ module.exports = function(RED) {
       return (str && str.replace && (typeof str.replace == "function")) ? str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replaceAll(/\t/g, "\\t") : str
     }
 
-    node.on('close', function() {
-      if (!node.context().get("succeed") && !cfg.ignore_failure_if_succeed) {
-        RED.comms.publish("unittesting:testresults", {
-          flowid: node.context().get("flowid") || node.z,
-          status: "failed"
-        })            
+    //
+    //
+    // Event Hander code
+    //
+    //
+
+    /* initialise and close handler - if removed is false, then this is an initailise */
+    node.on('close', function(removed, done) {
+      if (removed) {
+        if ((!node.context().get("succeed") && !cfg.ignore_failure_if_succeed) || !node.context().get("received_message")) {
+          RED.comms.publish("unittesting:testresults", {
+            flowid: node.z,
+            status: "failed"
+          })
+
+          node.status({ fill: "red", shape: "dot", text: "assert failed" })
+          
+          // use node.log(..) here because node.error(..) sends a message to the debug
+          // panel but that errors out because the frontend can't find the workspace:
+          //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
+          // that has follow-on effects.
+          // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
+          if (!node.context().get("received_message")) {
+            node.log(`ASSERT FAILURE [${node.z}] Assert Values node not reached`)
+          } else {
+            node.log(`ASSERT FAILURE [${node.z}] Assert values node failed`)
+          }
+        } 
+      } else {
+        node.status({});
+        node.context().set("succeed", false)
+        node.context().set("received_message", false)
       }
-      node.context().set("succeed", false)
-      node.status({});
+
+      done()
     });
 
     /* msg handler, in this case pass the message on unchanged */
     node.on("input", function(msg, send, done) {
         var failures = [];
         var unsupported = [];
-
-        node.context().set("flowid", msg._original_flow_id || node.z)
+        node.context().set("received_message", true)
 
         try {
           cfg.rules.forEach(rule => {     

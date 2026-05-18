@@ -10,6 +10,11 @@
                 "name": "ERED_PENDING",
                 "value": "false",
                 "type": "bool"
+            },
+            {
+                "name": "NRED_PENDING",
+                "value": "true",
+                "type": "bool"
             }
         ]
     },

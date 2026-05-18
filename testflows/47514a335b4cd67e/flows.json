@@ -27,7 +27,7 @@
         "id": "e85bbe5329de235b",
         "type": "exec",
         "z": "47514a335b4cd67e",
-        "command": "sleep 1000",
+        "command": "sleep 2",
         "addpay": "",
         "append": "",
         "useSpawn": "true",
@@ -35,7 +35,7 @@
         "winHide": false,
         "oldrc": false,
         "name": "",
-        "x": 674,
+        "x": 664,
         "y": 446,
         "wires": [
             [],

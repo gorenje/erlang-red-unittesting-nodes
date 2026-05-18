@@ -22,8 +22,8 @@
             "c970c0e90333caef"
         ],
         "uncaught": false,
-        "x": 408,
-        "y": 486,
+        "x": 153,
+        "y": 322,
         "wires": [
             [
                 "a3e89a14b26e7684"
@@ -82,77 +82,9 @@
         "type": "ut-assert-failure",
         "z": "16b254125478329a",
         "name": "",
-        "x": 732,
-        "y": 424.5,
+        "x": 582,
+        "y": 197.5,
         "wires": []
-    },
-    {
-        "id": "e192e68e59d47ac0",
-        "type": "ut-assert-debug",
-        "z": "16b254125478329a",
-        "name": "",
-        "scope": [
-            "06c87a703facf99b"
-        ],
-        "nodeid": "06c87a703facf99b",
-        "msgtype": "error",
-        "inverse": false,
-        "x": 424,
-        "y": 603.5,
-        "wires": [
-            [
-                "8d548e4d5baf78dc"
-            ]
-        ]
-    },
-    {
-        "id": "8d548e4d5baf78dc",
-        "type": "ut-assert-values",
-        "z": "16b254125478329a",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "debug.nodeid",
-                "pt": "msg",
-                "t": "eql",
-                "to": "06c87a703facf99b",
-                "tot": "str"
-            },
-            {
-                "p": "debug.type",
-                "pt": "msg",
-                "t": "eql",
-                "to": "error",
-                "tot": "str"
-            },
-            {
-                "p": "payload['level']",
-                "pt": "msg",
-                "t": "eql",
-                "to": "20",
-                "tot": "num"
-            },
-            {
-                "p": "payload.id",
-                "pt": "msg",
-                "t": "eql",
-                "to": "06c87a703facf99b",
-                "tot": "str"
-            },
-            {
-                "p": "payload.msg.error_msg",
-                "pt": "msg",
-                "t": "eql",
-                "to": "File Not Found: <<\"dfsafsdf\">>",
-                "tot": "str"
-            }
-        ],
-        "x": 912,
-        "y": 603.5,
-        "wires": [
-            []
-        ]
     },
     {
         "id": "ad5cce09c58f0436",

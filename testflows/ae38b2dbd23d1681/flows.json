@@ -178,14 +178,13 @@
             "081f4faa5886b7e5",
             "724a386dba48d091",
             "476abd1b7a8f62fc",
-            "9135dfcf227bb0b9",
             "4afb20631c30f911",
             "dc4c9e35011fd886"
         ],
-        "x": 78,
+        "x": 81,
         "y": 954,
-        "w": 875,
-        "h": 760
+        "w": 872,
+        "h": 656.5
     },
     {
         "id": "b23faccd2e9ac345",
@@ -284,26 +283,6 @@
         "h": 230
     },
     {
-        "id": "7d71420e042e54cd",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "name": "out of bounds - should be 1",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.27",
-            "label": true
-        },
-        "nodes": [
-            "fe955924780815a5",
-            "7438519f20033109",
-            "c88b51800fccb5eb"
-        ],
-        "x": 999.5,
-        "y": 2136.166664123535,
-        "w": 926,
-        "h": 82
-    },
-    {
         "id": "db3b335ac5b8127b",
         "type": "group",
         "z": "ae38b2dbd23d1681",
@@ -321,87 +300,6 @@
         "x": 1001,
         "y": 1821.5,
         "w": 926,
-        "h": 82
-    },
-    {
-        "id": "5343cb685acfd37d",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "name": "out of bounds - should be -100",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.27",
-            "label": true
-        },
-        "nodes": [
-            "b81a6a783a8dab4a",
-            "e86f5a7c79f0eae6",
-            "49e00a02f1de0ecb"
-        ],
-        "x": 1001,
-        "y": 1922.6666463216143,
-        "w": 946,
-        "h": 82
-    },
-    {
-        "id": "e2bce7fd39dbeda5",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "name": "out of bounds - should be 100",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.26",
-            "label": true
-        },
-        "nodes": [
-            "9b95f8806d032b1a",
-            "9867b9610c1786d5",
-            "4fbf1055ffadffe5"
-        ],
-        "x": 999.5,
-        "y": 2035.0000178019209,
-        "w": 926,
-        "h": 82
-    },
-    {
-        "id": "e481daad02ea8d36",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "name": "out of bounds - no response",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.26",
-            "label": true
-        },
-        "nodes": [
-            "92f555c0d00cf258",
-            "0207f27433d59cab",
-            "e2629620a7ffe4a6"
-        ],
-        "x": 1000,
-        "y": 2259,
-        "w": 849,
-        "h": 82
-    },
-    {
-        "id": "9135dfcf227bb0b9",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "g": "24b79bef6cc54998",
-        "name": "drop value when input range is 100 to 0",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.54",
-            "label": true
-        },
-        "nodes": [
-            "b90eba4c1315e276",
-            "6cdc01b47f3d7618",
-            "cf1b459ac2f2a131"
-        ],
-        "x": 131,
-        "y": 1606,
-        "w": 657,
         "h": 82
     },
     {
@@ -444,56 +342,12 @@
             "1b9da815289895f6",
             "2eefc736152abf21",
             "34f9aca4365459b8",
-            "7fc436fa6dba5345",
-            "035315efc39951d3",
-            "5ebdad060c708bec"
-        ],
-        "x": 104,
-        "y": 1019,
-        "w": 722,
-        "h": 352
-    },
-    {
-        "id": "035315efc39951d3",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "g": "dc4c9e35011fd886",
-        "name": "",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.43",
-            "label": true
-        },
-        "nodes": [
-            "d6a0709234363831",
-            "08f37768e41a0069",
-            "cd15b6b6a5f36a7c"
+            "7fc436fa6dba5345"
         ],
         "x": 131,
-        "y": 1045,
-        "w": 669,
-        "h": 82
-    },
-    {
-        "id": "5ebdad060c708bec",
-        "type": "group",
-        "z": "ae38b2dbd23d1681",
-        "g": "dc4c9e35011fd886",
-        "name": "",
-        "style": {
-            "fill": "#ffbfbf",
-            "fill-opacity": "0.47",
-            "label": true
-        },
-        "nodes": [
-            "0f1e99a1a36a687c",
-            "8bf51ee14b06f1e8",
-            "0da21e16c4e3eacf"
-        ],
-        "x": 130,
-        "y": 1263,
-        "w": 669,
-        "h": 82
+        "y": 1117,
+        "w": 689,
+        "h": 144
     },
     {
         "id": "cef006a1f43b25b8",
@@ -1093,76 +947,6 @@
         "wires": []
     },
     {
-        "id": "9b95f8806d032b1a",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "e2bce7fd39dbeda5",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "13.1",
-        "payloadType": "num",
-        "x": 1095.5,
-        "y": 2076.000017801921,
-        "wires": [
-            [
-                "9867b9610c1786d5"
-            ]
-        ]
-    },
-    {
-        "id": "9867b9610c1786d5",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "e2bce7fd39dbeda5",
-        "minin": "0",
-        "maxin": "9.5",
-        "minout": "0.5",
-        "maxout": "100.5",
-        "action": "clamp",
-        "round": true,
-        "property": "payload",
-        "name": "",
-        "x": 1432.5,
-        "y": 2076.000017801921,
-        "wires": [
-            [
-                "4fbf1055ffadffe5"
-            ]
-        ]
-    },
-    {
-        "id": "4fbf1055ffadffe5",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "e2bce7fd39dbeda5",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "100",
-                "tot": "num"
-            }
-        ],
-        "x": 1789.5,
-        "y": 2076.000017801921,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "cb14fb599ca6fd4a",
         "type": "inject",
         "z": "ae38b2dbd23d1681",
@@ -1565,76 +1349,6 @@
         ]
     },
     {
-        "id": "fe955924780815a5",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "7d71420e042e54cd",
-        "minin": "0",
-        "maxin": "9.5",
-        "minout": "0.3",
-        "maxout": "100.5",
-        "action": "clamp",
-        "round": true,
-        "property": "payload",
-        "name": "",
-        "x": 1432.5,
-        "y": 2177.166664123535,
-        "wires": [
-            [
-                "c88b51800fccb5eb"
-            ]
-        ]
-    },
-    {
-        "id": "7438519f20033109",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "7d71420e042e54cd",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "-13.1",
-        "payloadType": "num",
-        "x": 1095.5,
-        "y": 2177.166664123535,
-        "wires": [
-            [
-                "fe955924780815a5"
-            ]
-        ]
-    },
-    {
-        "id": "c88b51800fccb5eb",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "7d71420e042e54cd",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "1",
-                "tot": "num"
-            }
-        ],
-        "x": 1789.5,
-        "y": 2177.166664123535,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "081f4faa5886b7e5",
         "type": "range",
         "z": "ae38b2dbd23d1681",
@@ -1682,101 +1396,6 @@
         ]
     },
     {
-        "id": "d6a0709234363831",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "035315efc39951d3",
-        "minin": "100",
-        "maxin": "0",
-        "minout": "0",
-        "maxout": "-100",
-        "action": "clamp",
-        "round": false,
-        "property": "payload",
-        "name": "",
-        "x": 426,
-        "y": 1086,
-        "wires": [
-            [
-                "cd15b6b6a5f36a7c"
-            ]
-        ]
-    },
-    {
-        "id": "08f37768e41a0069",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "035315efc39951d3",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "40",
-        "payloadType": "num",
-        "x": 227,
-        "y": 1086,
-        "wires": [
-            [
-                "d6a0709234363831"
-            ]
-        ]
-    },
-    {
-        "id": "b90eba4c1315e276",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "9135dfcf227bb0b9",
-        "minin": "100",
-        "maxin": "0",
-        "minout": "0",
-        "maxout": "-100",
-        "action": "drop",
-        "round": false,
-        "property": "payload",
-        "name": "",
-        "x": 426,
-        "y": 1647,
-        "wires": [
-            [
-                "cf1b459ac2f2a131"
-            ]
-        ]
-    },
-    {
-        "id": "6cdc01b47f3d7618",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "g": "9135dfcf227bb0b9",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "40",
-        "payloadType": "num",
-        "x": 227,
-        "y": 1647,
-        "wires": [
-            [
-                "b90eba4c1315e276"
-            ]
-        ]
-    },
-    {
         "id": "476abd1b7a8f62fc",
         "type": "ut-assert-values",
         "z": "ae38b2dbd23d1681",
@@ -1794,28 +1413,6 @@
         ],
         "x": 817,
         "y": 995,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "cd15b6b6a5f36a7c",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "035315efc39951d3",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "-60",
-                "tot": "num"
-            }
-        ],
-        "x": 664,
-        "y": 1086,
         "wires": [
             []
         ]
@@ -2092,76 +1689,6 @@
         ],
         "x": 674,
         "y": 1220,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "0f1e99a1a36a687c",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "5ebdad060c708bec",
-        "minin": "100",
-        "maxin": "0",
-        "minout": "0",
-        "maxout": "-100",
-        "action": "clamp",
-        "round": false,
-        "property": "payload",
-        "name": "",
-        "x": 425,
-        "y": 1304,
-        "wires": [
-            [
-                "0da21e16c4e3eacf"
-            ]
-        ]
-    },
-    {
-        "id": "8bf51ee14b06f1e8",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "5ebdad060c708bec",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "20",
-        "payloadType": "num",
-        "x": 226,
-        "y": 1304,
-        "wires": [
-            [
-                "0f1e99a1a36a687c"
-            ]
-        ]
-    },
-    {
-        "id": "0da21e16c4e3eacf",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "5ebdad060c708bec",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "t": "eql",
-                "p": "payload",
-                "pt": "msg",
-                "to": "-80",
-                "tot": "num"
-            }
-        ],
-        "x": 663,
-        "y": 1304,
         "wires": [
             []
         ]
@@ -3422,28 +2949,6 @@
         ]
     },
     {
-        "id": "cf1b459ac2f2a131",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "9135dfcf227bb0b9",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "-60",
-                "tot": "num"
-            }
-        ],
-        "x": 652,
-        "y": 1647,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "b53b9f69cdb8a9f6",
         "type": "inject",
         "z": "ae38b2dbd23d1681",
@@ -3510,124 +3015,6 @@
         "y": 1862.5,
         "wires": [
             []
-        ]
-    },
-    {
-        "id": "b81a6a783a8dab4a",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "5343cb685acfd37d",
-        "minin": "0",
-        "maxin": "9.5",
-        "minout": "-100.6",
-        "maxout": "-0.7",
-        "action": "clamp",
-        "round": true,
-        "property": "payload",
-        "name": "",
-        "x": 1434,
-        "y": 1963.6666463216143,
-        "wires": [
-            [
-                "49e00a02f1de0ecb"
-            ]
-        ]
-    },
-    {
-        "id": "e86f5a7c79f0eae6",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "5343cb685acfd37d",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "-13.1",
-        "payloadType": "num",
-        "x": 1097,
-        "y": 1963.6666463216143,
-        "wires": [
-            [
-                "b81a6a783a8dab4a"
-            ]
-        ]
-    },
-    {
-        "id": "49e00a02f1de0ecb",
-        "type": "ut-assert-values",
-        "z": "ae38b2dbd23d1681",
-        "g": "5343cb685acfd37d",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "-100",
-                "tot": "num"
-            }
-        ],
-        "x": 1801,
-        "y": 1963.6666463216143,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "92f555c0d00cf258",
-        "type": "inject",
-        "z": "ae38b2dbd23d1681",
-        "d": true,
-        "g": "e481daad02ea8d36",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "4",
-        "payloadType": "num",
-        "x": 1096,
-        "y": 2300,
-        "wires": [
-            [
-                "0207f27433d59cab"
-            ]
-        ]
-    },
-    {
-        "id": "0207f27433d59cab",
-        "type": "range",
-        "z": "ae38b2dbd23d1681",
-        "g": "e481daad02ea8d36",
-        "minin": "0",
-        "maxin": "9.5",
-        "minout": "0.3",
-        "maxout": "0.9",
-        "action": "clamp",
-        "round": true,
-        "property": "payload",
-        "name": "",
-        "x": 1423,
-        "y": 2300,
-        "wires": [
-            [
-                "e2629620a7ffe4a6"
-            ]
         ]
     },
     {
@@ -3698,15 +3085,5 @@
         "wires": [
             []
         ]
-    },
-    {
-        "id": "e2629620a7ffe4a6",
-        "type": "ut-assert-failure",
-        "z": "ae38b2dbd23d1681",
-        "g": "e481daad02ea8d36",
-        "name": "",
-        "x": 1753,
-        "y": 2300,
-        "wires": []
     }
 ]

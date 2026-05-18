@@ -206,8 +206,13 @@ function highlightTestResult(dirList, flowid, status) {
   }
 
   dirList.treeList('select', `flowid-treelist-${flowid}`);
-  $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status", status)
-  $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', "fa " + shp).css('color', clr)
+  if ($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status") != status) {
+    $($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).data("status", status)
+    $($($(dirList.treeList('selected').treeList.container).find('.red-ui-treeList-icon')).find('i')).prop('class', "fa " + shp).css('color', clr)
+    return true
+  } else {
+    return false
+  }
 }
 
 function clearAllNodeStatus() {
@@ -509,22 +514,23 @@ let handleTestResult = (event, data) => {
       return
     }
 
-    RED.notify("Test result for flowid " + data.flowid + ": " + data.status, {
-      type: data.status == "failed" ? "error" : (data.status == "pending" ? "warning" : "success"),
-      timeout: (data.status == "failed" || data.status == "pending") ? 3000 : 2000
-    });
-    
-    // update the test results row
-    let v = parseInt($("#node-input-unittestingpull-testresults-row").find(".todo").html());
-    if ( v > 0 ) {
-      $("#node-input-unittestingpull-testresults-row").find(".todo").html(`${v - 1}`)
+    if (highlightTestResult(dirList, data.flowid, data.status)) {
+      RED.notify("Test result for flowid " + data.flowid + ": " + data.status, {
+        type: data.status == "failed" ? "error" : (data.status == "pending" ? "warning" : "success"),
+        timeout: (data.status == "failed" || data.status == "pending") ? 3000 : 2000
+      });
+      
+      // update the test results row
+      let v = parseInt($("#node-input-unittestingpull-testresults-row").find(".todo").html());
+      if ( v > 0 ) {
+        $("#node-input-unittestingpull-testresults-row").find(".todo").html(`${v - 1}`)
+      }
+      
+      v = parseInt($("#node-input-unittestingpull-testresults-row").find("."+data.status).html());
+      $("#node-input-unittestingpull-testresults-row").find("." + data.status).html(`${v+1}`)
+      v = parseInt($("#node-input-unittestingpull-testresults-row").find(".total").html());
+      $("#node-input-unittestingpull-testresults-row").find(".total").html(`${v + 1}`)
     }
-    v = parseInt($("#node-input-unittestingpull-testresults-row").find("."+data.status).html());
-    $("#node-input-unittestingpull-testresults-row").find("." + data.status).html(`${v+1}`)
-    v = parseInt($("#node-input-unittestingpull-testresults-row").find(".total").html());
-    $("#node-input-unittestingpull-testresults-row").find(".total").html(`${v + 1}`)
-
-    highlightTestResult(dirList, data.flowid, data.status);
   }
 }
 

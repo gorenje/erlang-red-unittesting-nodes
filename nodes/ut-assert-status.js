@@ -5,8 +5,17 @@ module.exports = function(RED) {
     var node = this;
     var cfg = config;
 
-    node.on('close', function() {
-      node.status({});
+    node.on('close', function(removed, done) {
+      if ( removed) {
+        node.status({});
+      } else {
+        // use node.log(..) here because node.error(..) sends a message to the debug
+        // panel but that errors out because the frontend can't find the workspace:
+        //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
+        // that has follow-on effects.
+        node.log(`ASSERT UNSUPPORTED [${node.z}] status is not supported`)
+      }
+      done()
     });
 
     /* msg handler, in this case pass the message on unchanged */

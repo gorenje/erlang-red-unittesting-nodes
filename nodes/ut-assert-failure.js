@@ -13,10 +13,16 @@ module.exports = function (RED) {
     node.on("input", function (msg, send, done) {
 
       RED.comms.publish("unittesting:testresults", {
-        flowid: msg._original_flow_id || node.z,
+        flowid: node.z,
         status: "failed"
       })
 
+      // use node.log(..) here because node.error(..) sends a message to the debug
+      // panel but that errors out because the frontend can't find the workspace:
+      //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
+      // that has follow-on effects.
+      // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
+      node.log(`ASSERT FAILURE [${node.z}] assert false was sent a message`, msg)
       node.status({ fill: "red", shape: "dot", text: RED._("ut-assert-failure.label.failed") });
 
       // Send a message and how to handle errors.

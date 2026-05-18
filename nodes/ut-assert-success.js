@@ -5,27 +5,42 @@ module.exports = function (RED) {
     var node = this;
     var cfg = config;
 
-    node.on('close', function () {
-      // a count of zero means that any number of messages is success.
-      if ( (cfg.count != 0 && cfg.count != node.context().get("msgcnt")) || 
-           (cfg.count == 0 && (node.context().get("msgcnt") || 0) == 0)
-      ) {
-        RED.comms.publish("unittesting:testresults", {
-          flowid: node.context().get("flowid") || node.z,
-          status: "failed"
-        })
-        node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${node.context().get("msgcnt")}` });
+    let hasFailed = () => {
+      if (!cfg.msglimit) { cfg.msglimit = "==" }
+      if (cfg.count == 0) { return (node.context().get("msgcnt") || 0) < 1 }
+      else if (cfg.msglimit == "==") { return (node.context().get("msgcnt") || 0) != cfg.count }
+      else if (cfg.msglimit == ">=") { return (node.context().get("msgcnt") || 0) < cfg.count }
+      else if (cfg.msglimit == "<=") { return (node.context().get("msgcnt") || 0) > cfg.count }
+      return false
+    }
+
+    node.on('close', function (removed, done) {
+      if (removed) {
+        if ( hasFailed() ) {
+          RED.comms.publish("unittesting:testresults", {
+            flowid: node.z,
+            status: "failed"
+          })
+          node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${node.context().get("msgcnt")}` });
+          // use node.log(..) here because node.error(..) sends a message to the debug
+          // panel but that errors out because the frontend can't find the workspace:
+          //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
+          // that has follow-on effects.
+          // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
+          node.log(`ASSERT FAILURE [${node.z}] assert true node failed`)
+        }
+      } else {
+        node.status({});
       }
 
       node.context().set("msgcnt", 0)
-      node.status({});
+      done();
     });
 
     /* msg handler, in this case pass the message on unchanged */
     node.on("input", function (msg, send, done) {
       let msgcnt = (node.context().get("msgcnt") || 0) + 1;
       node.context().set("msgcnt", msgcnt)
-      node.context().set("flowid", msg._original_flow_id || node.z)
 
       // How to send a status update
       if ((cfg.count || 1) == msgcnt) {

@@ -7,7 +7,13 @@
       "succeed": "assert succeed",
       "count": "Msg Count",
       "unsupported": "Unsupported",
-      "failed": "assert failed"
+      "failed": "assert failed",
+      "messages": "Msgs",
+      "limit": {
+        "upperlimit" : "Max",
+        "exactly": "Exactly",
+        "lowerlimit": "Min"
+      }
     },
 
     "status": {

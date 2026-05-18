@@ -13,7 +13,7 @@
             },
             {
                 "name": "NRED_TIMEOUT",
-                "value": "12",
+                "value": "13",
                 "type": "num"
             }
         ]
@@ -69,15 +69,12 @@
         "nodes": [
             "3d0fc6b73f545bf1",
             "c149f1afcce104c0",
-            "6b2197ef37baacf9",
-            "1071c9eb5be5f316",
-            "11380dc186423f58",
             "9df1f22797977bc0"
         ],
         "x": 240.75,
-        "y": 402,
-        "w": 808.25,
-        "h": 223
+        "y": 468.5,
+        "w": 742.25,
+        "h": 156.5
     },
     {
         "id": "af09a3c02e5dc779",
@@ -91,7 +88,6 @@
             "3e608f637baf6d92",
             "6ac13f394822cbdb",
             "2e6aeadb4ff3c225",
-            "4a8c801fc0aeda71",
             "d7bce7594d752e58"
         ],
         "x": 287,
@@ -118,9 +114,7 @@
             [
                 "2e6aeadb4ff3c225"
             ],
-            [
-                "4a8c801fc0aeda71"
-            ],
+            [],
             [
                 "d7bce7594d752e58"
             ]
@@ -172,12 +166,8 @@
         "x": 536,
         "y": 526.5,
         "wires": [
-            [
-                "6b2197ef37baacf9"
-            ],
-            [
-                "11380dc186423f58"
-            ],
+            [],
+            [],
             [
                 "9df1f22797977bc0"
             ]
@@ -328,43 +318,6 @@
         ]
     },
     {
-        "id": "6b2197ef37baacf9",
-        "type": "switch",
-        "z": "c0b1cf6656eac77f",
-        "g": "fb93cca833bb943c",
-        "name": "",
-        "property": "$length($$.payload)",
-        "propertyType": "jsonata",
-        "rules": [
-            {
-                "t": "gt",
-                "v": "1000",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 730,
-        "y": 479,
-        "wires": [
-            [
-                "1071c9eb5be5f316"
-            ]
-        ]
-    },
-    {
-        "id": "1071c9eb5be5f316",
-        "type": "ut-assert-success",
-        "z": "c0b1cf6656eac77f",
-        "g": "fb93cca833bb943c",
-        "name": "",
-        "count": 1,
-        "x": 913,
-        "y": 443,
-        "wires": []
-    },
-    {
         "id": "2e6aeadb4ff3c225",
         "type": "ut-assert-values",
         "z": "c0b1cf6656eac77f",
@@ -387,28 +340,6 @@
         ]
     },
     {
-        "id": "4a8c801fc0aeda71",
-        "type": "ut-assert-values",
-        "z": "c0b1cf6656eac77f",
-        "g": "af09a3c02e5dc779",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "p": "payload",
-                "pt": "msg",
-                "t": "eql",
-                "to": "",
-                "tot": "str"
-            }
-        ],
-        "x": 943,
-        "y": 250,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "d7bce7594d752e58",
         "type": "ut-assert-values",
         "z": "c0b1cf6656eac77f",
@@ -426,28 +357,6 @@
         ],
         "x": 943,
         "y": 325,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "11380dc186423f58",
-        "type": "ut-assert-values",
-        "z": "c0b1cf6656eac77f",
-        "g": "fb93cca833bb943c",
-        "name": "",
-        "ignore_failure_if_succeed": false,
-        "rules": [
-            {
-                "t": "eql",
-                "p": "payload",
-                "pt": "msg",
-                "to": "",
-                "tot": "str"
-            }
-        ],
-        "x": 933,
-        "y": 527,
         "wires": [
             []
         ]
