@@ -322,7 +322,12 @@ function resetTestResultsRow() {
     $('#node-input-unittestingpull-testresults-row').find(d).html("0")
   })
 }
-function runAllTests(dirList) {
+
+function runSubsetOfTests(dirList, testIds) {
+  runAllTests(dirList, testIds.join(","))
+}
+
+function runAllTests(dirList, withLimit) {
   if (RED.comms.isConnected && !RED.comms.isConnected()) {
     return RED.notify("Not connected to server, websocket down", "error")
   }
@@ -343,6 +348,11 @@ function runAllTests(dirList) {
       params = `${params}&testpend=true`
     } else {
       params = `${params}&testpend=false`
+    }
+
+    // all with limit of specific tests.
+    if (withLimit) {
+      params = `${params}&limit=${withLimit}`
     }
 
     $.get({
@@ -485,7 +495,7 @@ $('#node-input-unittestingpull-sb-test-flow-but').on('click', function (e) {
   if ( sltd.flowid) {
     runTestForFlowId(sltd.flowid,dirList)
   } else if (sltd.children) {
-    sltd.children.map( d => d.flowid ).map( d => runTestForFlowId(d,dirList))
+    runSubsetOfTests(dirList, sltd.children.map(d => d.flowid)) 
   }
 })
 
@@ -622,6 +632,9 @@ $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) 
   }
 })
 
+//
+// Select one and select all buttons
+//
 $('#node-input-unittestingselect-one-test-node').on('click', (e) => {
   if (e) e.preventDefault();
 

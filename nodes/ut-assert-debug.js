@@ -156,6 +156,16 @@ let respondWithCount = (res, count) => {
 
       let allTests = fs.globSync(`${testDir}/**/*.json`)
 
+      // if a limit (i.e. a list of testFlow ids) is provided, only peform those tests.
+      if (req.query.limit) {
+        let testIds = req.query.limit.split(",")
+
+        allTests = allTests.filter( filename => {
+          let origFlowId = path.basename(path.parse(filename).dir)
+          return testIds.indexOf(origFlowId) > -1
+        })
+      }
+
       let chunkedFilenames = chunkify(allTests, 10)
 
       respondWithCount(res, allTests.length)
