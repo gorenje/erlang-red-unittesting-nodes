@@ -181,7 +181,6 @@ let respondWithCount = (res, count) => {
           
           RED.log.debug(`unittest: adding test case [${origFlowId}] - '${tabDetails.label}'`)
 
-          console.log( req.query)
           if (isTestPending(tabDetails) && req.query["testpend"] != "true") {
             RED.comms.publish("unittesting:testresults", {
               flowid: origFlowId,
