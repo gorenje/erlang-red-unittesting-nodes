@@ -630,7 +630,16 @@ $('#node-input-unittestingselect-one-test-node').on('click', (e) => {
   if (sltd.flowid) {
     let nodeIds = RED.search.search(`${sltd.flowid}/flows.json flow:current`).map(d => d.node.id)
 
+    let nde = RED.nodes.node(nodeIds[0])
+    var ndeid = nde.id
+
+    RED.workspaces.show(nde.z, false, false, true);
     RED.view.select({ nodes: nodeIds.map(n => RED.nodes.node(n)) })
+
+    setTimeout(() => {
+      RED.view.reveal(ndeid, true);
+      RED.view.redraw();
+    }, 38);
   } else if (sltd.children) {
 
     let slNodes = sltd.children.map(d => d.flowid).map(d =>

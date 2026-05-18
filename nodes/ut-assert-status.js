@@ -13,7 +13,7 @@ module.exports = function(RED) {
         // panel but that errors out because the frontend can't find the workspace:
         //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
         // that has follow-on effects.
-        node.log(`ASSERT UNSUPPORTED [${node.z}] status is not supported`)
+        node.log(`UNSUPPORTED [${node.z}] status is not supported`)
       }
       done()
     });

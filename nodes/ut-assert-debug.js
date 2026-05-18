@@ -13,7 +13,7 @@ module.exports = function(RED) {
         // panel but that errors out because the frontend can't find the workspace:
         //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
         // that has follow-on effects.
-        node.log(`ASSERT UNSUPPORTED [${node.z}] debug is not supported`)
+        node.log(`UNSUPPORTED [${node.z}] debug is not supported`)
       }
       done()
     });
@@ -52,82 +52,99 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
     const fs = require('fs')
     const jsonClone = require("rfdc")();
     
+    // API defined here --> https://github.com/node-red/node-red/blob/master/packages/node_modules/%40node-red/runtime/lib/index.js
+    const runtime = require("@node-red/runtime");
+
     let testDir = path.resolve(path.dirname(__filename), "..", "testflows")
 
-    // API defined here --> https://github.com/node-red/node-red/blob/master/packages/node_modules/%40node-red/runtime/lib/index.js
-    var runtime = require("@node-red/runtime");
-
     // if a test generates an uncaught exception, then captcha that and generate
-    // a failure - tests are considered failed if they generate uncaught exceptions/errors.
-    let createExtraCatchNode = () => {
-      let changeId = runtime.util.generateId()
-      let assertId = runtime.util.generateId()
-      let debugId = runtime.util.generateId()
+// a failure - tests are considered failed if they generate uncaught exceptions/errors.
+let createExtraCatchNode = () => {
+  let changeId = runtime.util.generateId()
+  let assertId = runtime.util.generateId()
+  let debugId = runtime.util.generateId()
 
-      return [
-        {
-          "id": runtime.util.generateId(),
-          "type": "catch",
-          "name": "",
-          "scope": null,
-          "uncaught": true,
-          "wires": [
-            [
-              changeId
-            ]
-          ]
-        },
-        {
-          "id": changeId,
-          "type": "change",
-          "name": "",
-          "rules": [
-            {
-              "t": "set",
-              "p": "_unittest_triggered",
-              "pt": "msg",
-              "to": "true",
-              "tot": "bool"
-            }
-          ],
-          "action": "",
-          "property": "",
-          "from": "",
-          "to": "",
-          "reg": false,
-          "wires": [
-            [
-              assertId,
-              debugId
-            ]
-          ]
-        },
-        {
-          "id": debugId,
-          "type": "debug",
-          "name": "",
-          "active": true,
-          "tosidebar": false,
-          "console": true,
-          "tostatus": false,
-          "complete": "payload",
-          "targetType": "msg",
-          "statusVal": "",
-          "statusType": "auto",
-          "wires": []
-        },
-        {
-          "id": assertId,
-          "type": "ut-assert-failure",
-          "name": "",
-          "wires": []
-        }
+  return [
+    {
+      "id": runtime.util.generateId(),
+      "type": "catch",
+      "name": "",
+      "scope": null,
+      "uncaught": true,
+      "wires": [
+        [
+          changeId
+        ]
       ]
+    },
+    {
+      "id": changeId,
+      "type": "change",
+      "name": "",
+      "rules": [
+        {
+          "t": "set",
+          "p": "_unittest_triggered",
+          "pt": "msg",
+          "to": "true",
+          "tot": "bool"
+        }
+      ],
+      "action": "",
+      "property": "",
+      "from": "",
+      "to": "",
+      "reg": false,
+      "wires": [
+        [
+          assertId,
+          debugId
+        ]
+      ]
+    },
+    {
+      "id": debugId,
+      "type": "debug",
+      "name": "",
+      "active": true,
+      "tosidebar": false,
+      "console": true,
+      "tostatus": false,
+      "complete": "payload",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "wires": []
+    },
+    {
+      "id": assertId,
+      "type": "ut-assert-failure",
+      "name": "",
+      "wires": []
     }
+  ]
+}
 
-    let isTestPending = (tabDetails) => {
-      return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
-    }
+let isTestPending = (tabDetails) => {
+  return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
+}
+
+// chunkify an array into chunks of `size` size
+let chunkify = (array, size) => {
+  const chunkedArray = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunkedArray.push(array.slice(i, i + size));
+  }
+  return chunkedArray;
+}
+
+// respond to request with a list of total tests to be done. The frontend then
+// shows a progress indication of success / pending / failure
+let respondWithCount = (res, count) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ status: "ok", todo: count }));
+}
+
 
     if (req.params.flowid == "all") {
       //
@@ -136,19 +153,12 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
       // serial, so there has to be promise handling ... and that makes this stuff a little
       // more complicated.
       //
-      let chunky = (array, size) => {
-        const chunkedArray = [];
-        for (let i = 0; i < array.length; i += size) {
-          chunkedArray.push(array.slice(i, i + size));
-        }
-        return chunkedArray;
-      }
 
-      // chunk into blocks of 10 flows and then test in blocks of ten.
-      let chunkedFilenames = chunky(fs.globSync(`${testDir}/**/*.json`), 10)
+      let allTests = fs.globSync(`${testDir}/**/*.json`)
 
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({status: "ok", todo: fs.globSync(`${testDir}/**/*.json`).length}));
+      let chunkedFilenames = chunkify(allTests, 10)
+
+      respondWithCount(res, allTests.length)
 
       let runTestsForFileNames = (fileIdx) => {
         if (fileIdx >= chunkedFilenames.length) { return }
@@ -171,7 +181,8 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
           
           RED.log.debug(`unittest: adding test case [${origFlowId}] - '${tabDetails.label}'`)
 
-          if (isTestPending(tabDetails)) {
+          console.log( req.query)
+          if (isTestPending(tabDetails) && req.query["testpend"] != "true") {
             RED.comms.publish("unittesting:testresults", {
               flowid: origFlowId,
               status: "pending"
@@ -265,11 +276,12 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
       runTestsForFileNames(0)
     } else {
 
-      res.sendStatus(200);
-
       //
       // run a single unit test but ensure that the test case does exist on disk
       //
+
+      respondWithCount(res, 1)
+
       fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid)).forEach(filename => {
         let flowDetails = JSON.parse(fs.readFileSync(filename))
         let origFlowId = req.params.flowid
@@ -279,7 +291,7 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
 
         let timeoutValues = []
 
-        if (isTestPending(tabDetails)) {
+        if (isTestPending(tabDetails) && req.query["testpend"] != "true") {
           RED.comms.publish("unittesting:testresults", {
             flowid: origFlowId,
             status: "pending"

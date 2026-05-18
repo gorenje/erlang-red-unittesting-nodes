@@ -29,6 +29,41 @@
         ]
     },
     {
+        "id": "c6160e3706864cbe",
+        "type": "group",
+        "z": "486c1412721bb241",
+        "g": "2220934ff2ad9fd2",
+        "name": "",
+        "style": {
+            "fill": "#ffffff",
+            "label": true
+        },
+        "nodes": [
+            "7c14661d4617c019"
+        ],
+        "x": 161.5,
+        "y": 560,
+        "w": 312,
+        "h": 82
+    },
+    {
+        "id": "2220934ff2ad9fd2",
+        "type": "group",
+        "z": "486c1412721bb241",
+        "name": "",
+        "style": {
+            "fill": "#ff0000",
+            "label": true
+        },
+        "nodes": [
+            "c6160e3706864cbe"
+        ],
+        "x": 135.5,
+        "y": 534,
+        "w": 364,
+        "h": 134
+    },
+    {
         "id": "40e104d4cdec19d8",
         "type": "mqtt out",
         "z": "486c1412721bb241",
@@ -444,6 +479,17 @@
                 "4ae6a76dda47880d"
             ]
         ]
+    },
+    {
+        "id": "7c14661d4617c019",
+        "type": "comment",
+        "z": "486c1412721bb241",
+        "g": "c6160e3706864cbe",
+        "name": "Requires mosquitto is installed",
+        "info": "",
+        "x": 317.5,
+        "y": 601,
+        "wires": []
     },
     {
         "id": "97960d98b2837fa0",

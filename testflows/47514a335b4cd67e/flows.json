@@ -343,6 +343,7 @@
         "type": "ut-assert-success",
         "z": "47514a335b4cd67e",
         "name": "",
+        "msglimit": ">=",
         "count": "7",
         "x": 1046,
         "y": 777,

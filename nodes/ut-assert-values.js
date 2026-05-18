@@ -96,9 +96,9 @@ module.exports = function(RED) {
           // that has follow-on effects.
           // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
           if (!node.context().get("received_message")) {
-            node.log(`ASSERT FAILURE [${node.z}] Assert Values node not reached`)
+            node.log(`FAILED [${node.z}] Assert Values node not reached`)
           } else {
-            node.log(`ASSERT FAILURE [${node.z}] Assert values node failed`)
+            node.log(`FAILED [${node.z}] Assert values node failed`)
           }
         } 
       } else {

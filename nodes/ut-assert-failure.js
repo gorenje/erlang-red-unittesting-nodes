@@ -22,7 +22,7 @@ module.exports = function (RED) {
       //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
       // that has follow-on effects.
       // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
-      node.log(`ASSERT FAILURE [${node.z}] assert false was sent a message`, msg)
+      node.log(`FAILED [${node.z}] assert failure was sent a message`, msg)
       node.status({ fill: "red", shape: "dot", text: RED._("ut-assert-failure.label.failed") });
 
       // Send a message and how to handle errors.

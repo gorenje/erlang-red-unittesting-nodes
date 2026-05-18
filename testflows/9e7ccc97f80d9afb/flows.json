@@ -8,7 +8,7 @@
         "env": [
             {
                 "name": "NRED_PENDING",
-                "value": "true",
+                "value": "false",
                 "type": "bool"
             }
         ]
@@ -70,7 +70,7 @@
                 "t": "mth",
                 "p": "payload",
                 "pt": "msg",
-                "to": "hello world",
+                "to": "node-red-project",
                 "tot": "str"
             }
         ],

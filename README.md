@@ -1,4 +1,4 @@
-## Unit testing nodes for Erlang-RED
+## Unit testing nodes for Erlang-Red and Node-RED
 
 Node-RED Nodes for testing flow correctness in the [Erlang-Red](https://github.com/gorenje/erlang-red) project.
 
@@ -37,6 +37,10 @@ This package also defines the following actions that can be mapped to keyboard s
 - Test Current Workspace: triggers all inject buttons on the current workspace. Might well have undesired consequences if run on incorrect workspaces.
 - Send Halt To Test Server: (Erlang-Red only) restarts the server
 - Run All Tests: (Erlang-Red only) run all defined unit tests.
+
+## Forum Discussions
+
+- [Flow testsuite for testing core node functionality - May 2025](https://discourse.nodered.org/t/flow-testsuite-for-testing-core-node-functionality/97106)
 
 ## Tee Time
 

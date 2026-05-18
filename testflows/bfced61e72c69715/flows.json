@@ -18,7 +18,7 @@
             },
             {
                 "name": "NRED_PENDING",
-                "value": "true",
+                "value": "false",
                 "type": "bool"
             }
         ]
@@ -586,5 +586,31 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "21b080473838c114",
+        "type": "catch",
+        "z": "bfced61e72c69715",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 1020,
+        "y": 613,
+        "wires": [
+            [
+                "59620d40b240c47e"
+            ]
+        ]
+    },
+    {
+        "id": "59620d40b240c47e",
+        "type": "ut-assert-success",
+        "z": "bfced61e72c69715",
+        "name": "",
+        "msglimit": ">=",
+        "count": 1,
+        "x": 1262,
+        "y": 613,
+        "wires": []
     }
 ]

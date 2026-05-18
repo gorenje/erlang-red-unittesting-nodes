@@ -7,10 +7,13 @@ module.exports = function (RED) {
 
     let hasFailed = () => {
       if (!cfg.msglimit) { cfg.msglimit = "==" }
-      if (cfg.count == 0) { return (node.context().get("msgcnt") || 0) < 1 }
-      else if (cfg.msglimit == "==") { return (node.context().get("msgcnt") || 0) != cfg.count }
-      else if (cfg.msglimit == ">=") { return (node.context().get("msgcnt") || 0) < cfg.count }
-      else if (cfg.msglimit == "<=") { return (node.context().get("msgcnt") || 0) > cfg.count }
+      let msgcnt = (node.context().get("msgcnt") || 0)
+
+      if (cfg.count == 0) { return msgcnt < 1 } // zero count means 1 and above, so a msgcnt of zero is only failure
+      else if (cfg.msglimit == "==") { return msgcnt != cfg.count }
+      else if (cfg.msglimit == ">=") { return msgcnt < cfg.count }
+      else if (cfg.msglimit == "<=") { return msgcnt > cfg.count }
+      
       return false
     }
 
@@ -21,13 +24,13 @@ module.exports = function (RED) {
             flowid: node.z,
             status: "failed"
           })
-          node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} != ${node.context().get("msgcnt")}` });
+          node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-success.label.failed") + `: ${cfg.count} ${cfg.msglimit} ${node.context().get("msgcnt") || 0}` });
           // use node.log(..) here because node.error(..) sends a message to the debug
           // panel but that errors out because the frontend can't find the workspace:
           //    Uncaught TypeError: can't access property "label", RED.nodes.workspace(...) is undefined
           // that has follow-on effects.
           // see https://nodered.org/docs/creating-nodes/node-js#logging-events for more details
-          node.log(`ASSERT FAILURE [${node.z}] assert true node failed`)
+          node.log(`FAILED [${node.z}] assert success node failed: ${cfg.count} ${cfg.msglimit} ${node.context().get("msgcnt") || 0}`)
         }
       } else {
         node.status({});
@@ -43,7 +46,7 @@ module.exports = function (RED) {
       node.context().set("msgcnt", msgcnt)
 
       // How to send a status update
-      if ((cfg.count || 1) == msgcnt) {
+      if (!hasFailed()) {
         node.status({ fill: "green", shape: "ring", text: RED._("ut-assert-success.label.succeed") });
         setTimeout(() => { node.status({}); }, 1000)
       } else {

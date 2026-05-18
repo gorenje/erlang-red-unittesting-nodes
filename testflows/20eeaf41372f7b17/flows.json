@@ -53,6 +53,7 @@
         "type": "ut-assert-success",
         "z": "20eeaf41372f7b17",
         "name": "",
+        "msglimit": ">=",
         "count": "5",
         "x": 949,
         "y": 733,

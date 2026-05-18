@@ -14,6 +14,23 @@
         ]
     },
     {
+        "id": "6bd3dc54a08da48d",
+        "type": "group",
+        "z": "f946aafaebb1398d",
+        "name": "not supported",
+        "style": {
+            "fill": "#ffbfbf",
+            "label": true
+        },
+        "nodes": [
+            "0d6934d9ecec1350"
+        ],
+        "x": 437,
+        "y": 426.5,
+        "w": 372,
+        "h": 82
+    },
+    {
         "id": "2226d9591c2f20b6",
         "type": "inject",
         "z": "f946aafaebb1398d",
@@ -82,6 +99,7 @@
         "id": "0d6934d9ecec1350",
         "type": "ut-assert-debug",
         "z": "f946aafaebb1398d",
+        "g": "6bd3dc54a08da48d",
         "name": "",
         "scope": [
             "e257b7eb63f26b55"
