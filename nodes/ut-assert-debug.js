@@ -376,7 +376,7 @@ RED.httpAdmin.get("/UnitTesting/:flowid/retrieve",
     const path = require('path');
     const fs = require('fs')
 
-    let fileName = path.resolve(path.dirname(__filename), "..", "testflows", req.params.flowid, "flows.json")
+    let fileName = path.resolve(path.dirname(__filename), "..", "examples", req.params.flowid, "flows.json")
     const data = fs.readFileSync(fileName);
 
     try {
@@ -399,7 +399,7 @@ RED.httpAdmin.get("/UnitTesting/tests.json",
     const path = require('path');
     const fs = require('fs')
 
-    let testDir = path.resolve(path.dirname(__filename), "..", "testflows")
+    let testDir = path.resolve(path.dirname(__filename), "..", "examples")
 
     fs.globSync(`${testDir}/**/*.json`).forEach(filename => {
       let details = path.parse(filename)
