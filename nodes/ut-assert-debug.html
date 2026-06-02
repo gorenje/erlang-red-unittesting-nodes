@@ -11,11 +11,18 @@
         value:"",
       },
 
-      scope: { value: null, type: "*[]", required: true },
+      scope: { 
+        value: null, 
+        type: "*[]", 
+        required: true,
+        validate: function(v) {
+          if (!v) { return false }
+          return Array.isArray(v) && v.length > 0
+        }
+      },
 
       nodeid: {
         value: "",
-        required: true
       }, 
 
       msgtype: {

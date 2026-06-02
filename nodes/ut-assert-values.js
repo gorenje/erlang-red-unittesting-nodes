@@ -102,6 +102,7 @@ module.exports = function(RED) {
           }
         } 
       } else {
+        // node was restarted
         node.status({});
         node.context().set("succeed", false)
         node.context().set("received_message", false)

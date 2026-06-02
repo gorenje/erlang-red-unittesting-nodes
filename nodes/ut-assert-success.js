@@ -33,6 +33,7 @@ module.exports = function (RED) {
           node.log(`FAILED [${node.z}] assert success node failed: ${cfg.count} ${cfg.msglimit} ${node.context().get("msgcnt") || 0}`)
         }
       } else {
+        // node was restarted
         node.status({});
       }
 
