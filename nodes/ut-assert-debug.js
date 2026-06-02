@@ -55,7 +55,7 @@ RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
     // API defined here --> https://github.com/node-red/node-red/blob/master/packages/node_modules/%40node-red/runtime/lib/index.js
     const runtime = require("@node-red/runtime");
 
-    let testDir = path.resolve(path.dirname(__filename), "..", "testflows")
+    let testDir = path.resolve(path.dirname(__filename), "..", "examples")
 
     // if a test generates an uncaught exception, then captcha that and generate
 // a failure - tests are considered failed if they generate uncaught exceptions/errors.

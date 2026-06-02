@@ -1,0 +1,160 @@
+[
+    {
+        "id": "f946aafaebb1398d",
+        "type": "tab",
+        "label": "[change] debug message if no catch node",
+        "disabled": false,
+        "info": "",
+        "env": [
+            {
+                "name": "NRED_PENDING",
+                "value": "true",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "id": "6bd3dc54a08da48d",
+        "type": "group",
+        "z": "f946aafaebb1398d",
+        "name": "not supported",
+        "style": {
+            "fill": "#ffbfbf",
+            "label": true
+        },
+        "nodes": [
+            "0d6934d9ecec1350"
+        ],
+        "x": 437,
+        "y": 426.5,
+        "w": 372,
+        "h": 82
+    },
+    {
+        "id": "2226d9591c2f20b6",
+        "type": "inject",
+        "z": "f946aafaebb1398d",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 225,
+        "y": 360.25,
+        "wires": [
+            [
+                "e257b7eb63f26b55"
+            ]
+        ]
+    },
+    {
+        "id": "e257b7eb63f26b55",
+        "type": "change",
+        "z": "f946aafaebb1398d",
+        "name": "",
+        "rules": [
+            {
+                "p": "payload",
+                "pt": "msg",
+                "t": "set",
+                "to": "$fromMillis()",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 497.5,
+        "y": 360.25,
+        "wires": [
+            [
+                "253ca6fab4318ecd"
+            ]
+        ]
+    },
+    {
+        "id": "253ca6fab4318ecd",
+        "type": "ut-assert-failure",
+        "z": "f946aafaebb1398d",
+        "name": "",
+        "x": 780,
+        "y": 360.25,
+        "wires": []
+    },
+    {
+        "id": "0d6934d9ecec1350",
+        "type": "ut-assert-debug",
+        "z": "f946aafaebb1398d",
+        "g": "6bd3dc54a08da48d",
+        "name": "",
+        "scope": [
+            "e257b7eb63f26b55"
+        ],
+        "nodeid": "e257b7eb63f26b55",
+        "msgtype": "error",
+        "inverse": false,
+        "x": 623,
+        "y": 467.5,
+        "wires": [
+            [
+                "22901bfced10026b"
+            ]
+        ]
+    },
+    {
+        "id": "22901bfced10026b",
+        "type": "ut-assert-values",
+        "z": "f946aafaebb1398d",
+        "name": "",
+        "ignore_failure_if_succeed": false,
+        "rules": [
+            {
+                "p": "payload['level']",
+                "pt": "msg",
+                "t": "eql",
+                "to": "20",
+                "tot": "num"
+            },
+            {
+                "p": "payload.msg.error_msg",
+                "pt": "msg",
+                "t": "eql",
+                "to": "jsonata unsupported function: {fromMillis,[]}",
+                "tot": "str"
+            },
+            {
+                "p": "payload.id",
+                "pt": "msg",
+                "t": "eql",
+                "to": "e257b7eb63f26b55",
+                "tot": "str"
+            },
+            {
+                "p": "debug.type",
+                "pt": "msg",
+                "t": "eql",
+                "to": "error",
+                "tot": "str"
+            }
+        ],
+        "x": 1019,
+        "y": 467.5,
+        "wires": [
+            []
+        ]
+    }
+]
