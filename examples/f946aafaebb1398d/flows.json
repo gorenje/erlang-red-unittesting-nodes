@@ -8,27 +8,10 @@
         "env": [
             {
                 "name": "NRED_PENDING",
-                "value": "true",
+                "value": "false",
                 "type": "bool"
             }
         ]
-    },
-    {
-        "id": "6bd3dc54a08da48d",
-        "type": "group",
-        "z": "f946aafaebb1398d",
-        "name": "not supported",
-        "style": {
-            "fill": "#ffbfbf",
-            "label": true
-        },
-        "nodes": [
-            "0d6934d9ecec1350"
-        ],
-        "x": 437,
-        "y": 426.5,
-        "w": 372,
-        "h": 82
     },
     {
         "id": "2226d9591c2f20b6",
@@ -99,7 +82,6 @@
         "id": "0d6934d9ecec1350",
         "type": "ut-assert-debug",
         "z": "f946aafaebb1398d",
-        "g": "6bd3dc54a08da48d",
         "name": "",
         "scope": [
             "e257b7eb63f26b55"
@@ -123,31 +105,24 @@
         "ignore_failure_if_succeed": false,
         "rules": [
             {
-                "p": "payload['level']",
-                "pt": "msg",
                 "t": "eql",
+                "p": "data.level",
+                "pt": "msg",
                 "to": "20",
                 "tot": "num"
             },
             {
-                "p": "payload.msg.error_msg",
-                "pt": "msg",
                 "t": "eql",
-                "to": "jsonata unsupported function: {fromMillis,[]}",
+                "p": "data.msg",
+                "pt": "msg",
+                "to": "Invalid JSONata expression: Context value is not a compatible type with argument 1 of function \"fromMillis\"",
                 "tot": "str"
             },
             {
-                "p": "payload.id",
-                "pt": "msg",
                 "t": "eql",
+                "p": "data.id",
+                "pt": "msg",
                 "to": "e257b7eb63f26b55",
-                "tot": "str"
-            },
-            {
-                "p": "debug.type",
-                "pt": "msg",
-                "t": "eql",
-                "to": "error",
                 "tot": "str"
             }
         ],

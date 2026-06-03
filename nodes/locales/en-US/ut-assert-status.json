@@ -11,7 +11,10 @@
 
     "status": {
       "waiting": "Waiting for Godot",
-      "timeout": "No more time to waiting"
+      "timeout": "No more time to waiting",
+      "succeed": "assert succeed",
+      "unsupported": "Unsupported",
+      "failed": "assert failed"      
     }
   }
 }

@@ -13,27 +13,10 @@
             },
             {
                 "name": "NRED_PENDING",
-                "value": "true",
+                "value": "false",
                 "type": "bool"
             }
         ]
-    },
-    {
-        "id": "9fb63c4687a18fe8",
-        "type": "group",
-        "z": "6ff45e2a0ce77393",
-        "name": "unsupported functionality",
-        "style": {
-            "fill": "#ffbfbf",
-            "label": true
-        },
-        "nodes": [
-            "c01ed7eb622d8589"
-        ],
-        "x": 469,
-        "y": 556.5,
-        "w": 332,
-        "h": 82
     },
     {
         "id": "fb8dfcf01789e02d",
@@ -90,7 +73,6 @@
         "id": "c01ed7eb622d8589",
         "type": "ut-assert-debug",
         "z": "6ff45e2a0ce77393",
-        "g": "9fb63c4687a18fe8",
         "name": "",
         "scope": [
             "933284b9d26c8f41"
@@ -114,28 +96,28 @@
         "ignore_failure_if_succeed": false,
         "rules": [
             {
-                "p": "payload['level']",
-                "pt": "msg",
-                "t": "notset"
+                "t": "notset",
+                "p": "data.level",
+                "pt": "msg"
             },
             {
-                "p": "payload.format",
-                "pt": "msg",
                 "t": "eql",
-                "to": "string",
+                "p": "data.format",
+                "pt": "msg",
+                "to": "string[19]",
                 "tot": "str"
             },
             {
-                "p": "payload.msg",
-                "pt": "msg",
                 "t": "eql",
+                "p": "data.msg",
+                "pt": "msg",
                 "to": "this is the payload",
                 "tot": "str"
             },
             {
-                "p": "payload.id",
-                "pt": "msg",
                 "t": "eql",
+                "p": "data.id",
+                "pt": "msg",
                 "to": "933284b9d26c8f41",
                 "tot": "str"
             }

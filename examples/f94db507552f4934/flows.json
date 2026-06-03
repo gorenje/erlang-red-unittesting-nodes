@@ -8,27 +8,10 @@
         "env": [
             {
                 "name": "NRED_PENDING",
-                "value": "true",
+                "value": "false",
                 "type": "bool"
             }
         ]
-    },
-    {
-        "id": "bccf84794ce95583",
-        "type": "group",
-        "z": "f94db507552f4934",
-        "name": "not supported",
-        "style": {
-            "fill": "#ffbfbf",
-            "label": true
-        },
-        "nodes": [
-            "e2c4d5d899ec5ba9"
-        ],
-        "x": 333,
-        "y": 763.5,
-        "w": 412,
-        "h": 82
     },
     {
         "id": "9e18baf7e0889dad",
@@ -118,7 +101,6 @@
         "id": "e2c4d5d899ec5ba9",
         "type": "ut-assert-debug",
         "z": "f94db507552f4934",
-        "g": "bccf84794ce95583",
         "name": "",
         "scope": [
             "44c66f81d4f45cc9"
@@ -160,17 +142,17 @@
         "ignore_failure_if_succeed": false,
         "rules": [
             {
-                "p": "payload.format",
-                "pt": "msg",
                 "t": "eql",
-                "to": "object",
-                "tot": "str"
+                "p": "data.level",
+                "pt": "msg",
+                "to": "20",
+                "tot": "num"
             },
             {
-                "p": "payload.name",
-                "pt": "msg",
                 "t": "eql",
-                "to": "this file does not exist",
+                "p": "data.msg",
+                "pt": "msg",
+                "to": "{\"name\":\"Error\",\"message\":\"ENOENT: no such file or directory, open 'this file does not exist'\"}",
                 "tot": "str"
             }
         ],

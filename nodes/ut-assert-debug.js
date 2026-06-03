@@ -5,13 +5,17 @@ module.exports = function(RED) {
     var node = this;
     var cfg = config;
     
-    var testFailed = () => {
+    var testFailed = (msgstr) => {
       node.status({ fill: "red", shape: "ring", text: RED._("ut-assert-debug.status.failed") });
       RED.comms.publish("unittesting:testresults", { flowid: node.z, status: "failed" })
+      // sending a message to the debug panel will faile because the node isn't part 
+      // of the workspace, hence use `log` instead of `error`.
+      node.log(`FAILED [${node.z}] Assert Debug '${msgstr}'`)
     }
 
     var testSucceed = () => {
       node.status({ fill: "green", shape: "dot", text: RED._("ut-assert-debug.status.succeed") })
+      setTimeout(() => { node.status({}); }, 1000)      
     }
 
     var handler = (msg) => {
@@ -22,14 +26,14 @@ module.exports = function(RED) {
 
       // set status according to .... settings
       if (cfg.inverse) {
-        testFailed()
+        testFailed("recevied debug message where none was expected")
       } else {
         if ( (cfg.msgtype == "warning" && msg.data.level == 30) 
           || (cfg.msgtype == "error" && msg.data.level == 20)
           || (cfg.msgtype == "normal" && !msg.data.level) ) {
           testSucceed()
         } else {
-          testFailed()
+          testFailed(`debug message type did not match ${cfg.msgtype} != ${msg.data.level}`)
         }
       }
 
@@ -42,12 +46,10 @@ module.exports = function(RED) {
     node.on('close', function (removed, done) {
       if (removed) {
         // This node has been disabled/deleted
-        require("@node-red/util").events.off("comms", handler)
-
         let receivedmsg = (node.context().get("receivedmsg") ?? false)
         if (!receivedmsg) {
           if (!cfg.inverse) {
-            testFailed()
+            testFailed("expected debug message but none received")
           } else {
             testSucceed()
           }
@@ -58,6 +60,7 @@ module.exports = function(RED) {
         node.context().set("receivedmsg", false)
       }
       
+      require("@node-red/util").events.off("comms", handler)
       done();
     });
   }

@@ -12,19 +12,6 @@ module.exports = function(RED) {
     //
     //
 
-
-    /*
-    * Note to self: getMessageProperty(..) and getObjectProperty(...) only differ in that
-    * getMessageProperty will remove any 'msg.' prefix from the property name. This is not
-    * the case here since we're using the Node-RED inbuilt helpers for setting values.
-    * --> here: https://github.com/node-red/node-red/blob/0f653ed7b2640feba8885e48b9448df7d42acaf0/packages/node_modules/%40node-red/util/lib/util.js#L397-L402
-    *
-    *
-    * from --> https://github.com/node-red/node-red/blob/0f653ed7b2640feba8885e48b9448df7d42acaf0/packages/node_modules/%40node-red/util/lib/util.js#L407-L418
-    *
-    *  getObjectProperty will return undefined if a property isn't set.
-    */
-
     var sendToDebug = (nde,rule,msgc,lvl) => {
      try {
       let msg = {
