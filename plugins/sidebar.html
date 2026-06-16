@@ -367,8 +367,7 @@ function runAllTests(dirList, withLimit) {
 }
 
    // Add your plugin as a new tabsheet in the right sidebar AFTER the flow editor is completely started
-   var initialiseConfigNodeOnce = () => {
-      RED.events.off('runtime-state', initialiseConfigNodeOnce);
+   var initSidebarForUnittest = () => {
     
       var content = $($('script[type="text/x-red"][data-template-name="UnitTestingSidebar"]').i18n().html());
 
@@ -554,8 +553,6 @@ let handledStoppedStatus = (data) => {
   }
 }
 
-RED.comms.subscribe('unittesting:testresults', handleTestResult);
-
 $('#node-input-unittestingpull-expand-all-but').on('click', function (e) {
   e.preventDefault();
   expandAllTests(dirList)
@@ -586,33 +583,6 @@ $('#node-input-unittestingpull-sb-refresh-list-but').on('click', function (e) {
     }, undefined);
   }, 150);
 });
-
-// debugging
-window.unitTestDirList = dirList;
-window.fakeTestResult = handleTestResult;
-
-if (RED.comms.on) { 
-  // RED.comms.on is not available on NR 3.x
-  RED.comms.on("connect", () => {
-    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
-    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
-    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
-  });
-
-  RED.comms.on("disconnect", () => {
-    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', true)
-    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', true)
-    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', true)
-  });
-
-  if ( !RED.comms.isConnected || RED.comms.isConnected() ) {
-    $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
-    $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
-    $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
-  }
-} else {
-  $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
-}
 
 RED.actions.add("unittesting:send-halt-to-test-server", sendUnittestngHalt)
 RED.actions.add("unittesting:test-current-workspace", testCurrentWorkspace)
@@ -682,9 +652,43 @@ $('#node-input-unittestingselect-test-node').on('click', (e) => {
     RED.view.select({ nodes: slNodes.map(n => RED.nodes.node(n)) }) 
   }
 })
+
+      let inittestunitcomm = () => {
+        RED.events.off('flows:loaded', inittestunitcomm);
+
+        // debugging
+        window.unitTestDirList = dirList;
+        window.fakeTestResult = handleTestResult;
+
+        if (RED.comms.on) { 
+          // RED.comms.on is not available on NR 3.x
+          RED.comms.on("connect", () => {
+            $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+            $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+            $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
+          });
+
+          RED.comms.on("disconnect", () => {
+            $('#node-input-unittestingpull-sb-testall-but').prop('disabled', true)
+            $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', true)
+            $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', true)
+          });
+
+          if ( !RED.comms.isConnected || RED.comms.isConnected() ) {
+            $('#node-input-unittestingpull-sb-testall-but').prop('disabled', false)
+            $('#node-input-unittestingpull-sb-test-flow-but').prop('disabled', false)
+            $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
+          }
+        } else {
+          $('#node-input-unittestingpull-sb-test-workspace-but').prop('disabled', false)
+        }
+
+        RED.comms.subscribe('unittesting:testresults', handleTestResult);        
+      }
+      RED.events.on('flows:loaded', inittestunitcomm);
    };
-   
-   RED.events.on('runtime-state', initialiseConfigNodeOnce);
+
+   RED.plugins.registerPlugin("unittesting-sidebar-plugin", { onadd: initSidebarForUnittest });
 })();
 </script>
 
