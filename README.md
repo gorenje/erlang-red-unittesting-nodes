@@ -28,7 +28,7 @@ Their server-side implementations in Erlang-RED:
 
 Admittedly the assert status node can be replaced by using a status node followed by an assert true node. These nodes provided the basis for the Erlang-RED project and therefore existed before any other nodes - hence the duplicity.
 
-These nodes have been published because the [Erlang-RED flow testsuite](https://github.com/gorenje/erlang-red-flow-testsuite) utilises them.
+These nodes have been published because the [Erlang-RED flow testsuite](https://github.com/gorenje/erlang-red-flow-testsuite) utilises them and because they bundle those test cases into a single [node package](https://flows.nodered.org/node/@gregoriusrippenstein/erlang-red-unittest) that can be installed into Node-RED.
 
 ## Actions
 
@@ -133,7 +133,9 @@ Therefore, to be able to do that, to be able to port flows one-to-one to Erlang-
 
 ## Artifacts
 
+Node-RED flow that maintains this [codebase](https://flowhub.org/f/ef91cb280e1bfd72). This also builds the package and provides the logic for retrieving test cases from the [test case repository](https://github.com/gorenje/erlang-red-flow-testsuite).
+
 - [NPMjs Package](https://www.npmjs.com/package/@gregoriusrippenstein/erlang-red-unittest)
 - [Node-RED node package](https://flows.nodered.org/node/@gregoriusrippenstein/erlang-red-unittest)
 - [GitHub Repo](https://github.com/gorenje/erlang-red-unittesting-nodes)
-- Node-RED flow that maintains this [codebase](https://flowhub.org/f/ef91cb280e1bfd72).
+- [Test Case Repository](https://github.com/gorenje/erlang-red-flow-testsuite)
