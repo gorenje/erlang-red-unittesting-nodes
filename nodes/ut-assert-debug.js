@@ -147,6 +147,10 @@ let createExtraCatchNode = () => {
   ]
 }
 
+let isErlangRedOnly = (tabDetails) => {
+  return tabDetails.env.filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
+}
+
 let isTestPending = (tabDetails) => {
   return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
 }
@@ -176,14 +180,20 @@ let respondWithCount = (res, count) => {
       // more complicated.
       //
 
-      let allTests = fs.globSync(`${testDir}/**/*.json`)
+      let a = fs.globSync(`${testDir}/**/*.json`);
+      let b = fs.globSync(`${testDir}/.**/*.json`);
+
+      let allTests = [...a, ...b]
 
       // if a limit (i.e. a list of testFlow ids) is provided, only peform those tests.
       if (req.query.limit) {
         let testIds = req.query.limit.split(",")
 
+        // need to load all files to retrieve the ids to apply the filter.
         allTests = allTests.filter( filename => {
-          let origFlowId = path.basename(path.parse(filename).dir)
+          let flowDetails = JSON.parse(fs.readFileSync(filename))
+          let origFlowId = flowDetails.filter(d => d.type == "tab")[0].id
+
           return testIds.indexOf(origFlowId) > -1
         })
       }
@@ -205,9 +215,9 @@ let respondWithCount = (res, count) => {
 
         let flowsToAdd = chunkedFilenames[fileIdx].map((filename) => {
           
-          let origFlowId = path.basename(path.parse(filename).dir)
-
           let flowDetails = JSON.parse(fs.readFileSync(filename))
+
+          let origFlowId = flowDetails.filter(d => d.type == "tab")[0].id
           let tabDetails = flowDetails.filter(d => d.type == "tab")[0]
           let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
           
@@ -217,6 +227,14 @@ let respondWithCount = (res, count) => {
             RED.comms.publish("unittesting:testresults", {
               flowid: origFlowId,
               status: "pending"
+            })
+            return null
+          }
+
+          if (isErlangRedOnly(tabDetails)) {
+            RED.comms.publish("unittesting:testresults", {
+              flowid: origFlowId,
+              status: "not-supported"
             })
             return null
           }
@@ -313,8 +331,17 @@ let respondWithCount = (res, count) => {
 
       respondWithCount(res, 1)
 
-      fs.globSync(`${testDir}/**/*.json`).filter(d => d.includes(req.params.flowid)).forEach(filename => {
+      let a = fs.globSync(`${testDir}/**/*.json`);
+      let b = fs.globSync(`${testDir}/.**/*.json`);
+
+      [...a, ...b].forEach(filename => {
+        
         let flowDetails = JSON.parse(fs.readFileSync(filename))
+
+        if (flowDetails.filter(d => d.type == "tab")[0].id != req.params.flowid) {
+          return
+        }
+
         let origFlowId = req.params.flowid
 
         let tabDetails = flowDetails.filter(d => d.type == "tab")[0]
@@ -326,6 +353,14 @@ let respondWithCount = (res, count) => {
           RED.comms.publish("unittesting:testresults", {
             flowid: origFlowId,
             status: "pending"
+          })
+          return null
+        }
+
+        if (isErlangRedOnly(tabDetails)) {
+          RED.comms.publish("unittesting:testresults", {
+            flowid: origFlowId,
+            status: "not-supported"
           })
           return null
         }
@@ -397,15 +432,26 @@ RED.httpAdmin.get("/UnitTesting/:flowid/retrieve",
   (req, res) => {
     const path = require('path');
     const fs = require('fs')
-
-    let fileName = path.resolve(path.dirname(__filename), "..", "examples", req.params.flowid, "flows.json")
-    const data = fs.readFileSync(fileName);
+    
+    let testDir = path.resolve(path.dirname(__filename), "..", "examples")
 
     try {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ flowdata: JSON.parse(data) }));
-    } catch (err) {
+      let a = fs.globSync(`${testDir}/**/*.json`);
+      let b = fs.globSync(`${testDir}/.**/*.json`);
+
+      [...a, ...b].forEach(filename => {
+        const data = JSON.parse(fs.readFileSync(filename));
+        const flowid = data.filter(d => d.type == "tab")[0].id
+
+        if (flowid == req.params.flowid) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ flowdata: data }));
+          throw "done";
+        }
+      })
       res.sendStatus(500);
+    } catch (e) {
+      /* ignore */
     }
   });
 
@@ -423,13 +469,16 @@ RED.httpAdmin.get("/UnitTesting/tests.json",
 
     let testDir = path.resolve(path.dirname(__filename), "..", "examples")
 
-    fs.globSync(`${testDir}/**/*.json`).forEach(filename => {
-      let details = path.parse(filename)
-      const data = fs.readFileSync(filename);
+    let a = fs.globSync(`${testDir}/**/*.json`);
+    let b = fs.globSync(`${testDir}/.**/*.json`);
 
-      testData.data[path.basename(details.dir)] = {
-        "id": path.basename(details.dir),
-        "name": JSON.parse(data).filter(d => d.type == "tab")[0].label
+    [...a,...b].forEach(filename => {
+      const data = JSON.parse(fs.readFileSync(filename));
+      const flowid = data.filter(d => d.type == "tab")[0].id
+
+      testData.data[flowid] = {
+        "id": flowid,
+        "name": data.filter(d => d.type == "tab")[0].label
       }
     })
 
