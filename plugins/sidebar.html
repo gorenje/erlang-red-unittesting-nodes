@@ -110,16 +110,23 @@ function doFlowImportForSidebarUnittesting(flowid) {
         });
       }
 
-      RED.clipboard.import();
+      if ( RED.view.state() === RED.state.DEFAULT) {
+        RED.clipboard.import();
 
-      setTimeout(() => {
-        var content = e.flowdata;
+        setTimeout(() => {
+          var content = e.flowdata;
 
 
-        $('#red-ui-clipboard-dialog-import-text').val(
-          JSON.stringify(content)
-        ).trigger("paste");
-      }, 300);
+          $('#red-ui-clipboard-dialog-import-text').val(
+            JSON.stringify(content)
+          ).trigger("paste");
+        }, 300);
+      } else {
+        RED.notify("Close editor panel and retry, cannot open import dialog while editing nodes.", {
+          type: "warning",
+          timeout: 3000
+        });
+      }
     }).fail(e => {
       let msg = "<p>Failed to retrieve test flow data from server.</p>" +
         $('#node-input-unittestingpull-flowid').val().trim() + "</p>" +
@@ -250,7 +257,62 @@ function clearDebugPanel() {
   RED.actions.invoke("core:clear-debug-messages")
 }
 
-function runTestForFlowId(flowid,dirList=undefined) {
+function runWorkspaceAsTest(flowid) {
+  // this is an Erlang-Red special.
+
+  let getFlowDataFromCurrentWorkspace = (flowid) => {
+    /******
+     ** Code taken from Node-RED code base:
+     **
+     ** https://github.com/node-red/node-red/blob/e8ddee24a9944e57d186f02b081295c56a45b67c/packages/node_modules/%40node-red/editor-client/src/js/ui/clipboard.js#L710-L723
+     **
+     **/
+    var activeWorkspace = flowid || RED.workspaces.active();
+    var nodes = RED.nodes.groups(activeWorkspace);
+
+    nodes = nodes.concat(RED.nodes.junctions(activeWorkspace));
+    nodes = nodes.concat(RED.nodes.filterNodes({ z: activeWorkspace }));
+
+    RED.nodes.eachConfig(function (n) {
+      if (n.z === RED.workspaces.active() && n._def.hasUsers === false) {
+        // Grab any config nodes scoped to this flow that don't
+        // require any flow-nodes to use them
+        nodes.push(n);
+      }
+    });
+
+    var parentNode = RED.nodes.workspace(
+      activeWorkspace
+    ) || RED.nodes.subflow(activeWorkspace);
+
+    nodes.unshift(parentNode);
+
+    return RED.nodes.createExportableNodeSet(nodes);
+  }
+
+  if (flowid) {
+    $.ajax({
+      url: `UnitTesting/${flowid}/testworkspace`,
+      type: "POST",
+      contentType: "application/json; charset=utf-8",
+
+      data: JSON.stringify({
+        flowdata: getFlowDataFromCurrentWorkspace(flowid),
+      }),
+
+      success: function (resp) {
+        RED.notify(`Triggered test run for ${flowid}`, "info")
+        $('#node-input-unittestingpull-testresults-row').find(".todo").html(resp.todo)
+      },
+
+      error: function (jqXHR, textStatus, errorThrown) {
+        RED.notify("Failed to trigger test", "error")
+      }
+    })
+  }
+}
+
+function runTestForFlowId(flowid, dirList=undefined) {
   if (flowid) {
     if (dirList) {
       resetTestResultsForFlowId(dirList,flowid)
@@ -290,8 +352,10 @@ function testCurrentWorkspace() {
   if (RED.comms.isConnected && !RED.comms.isConnected()) {
     return RED.notify("Not connected to server, websocket down", "error")
   }
-  if ( RED.isErlangRed ) {
-    runTestForFlowId(RED.workspaces.active())
+
+//  if ( RED.isErlangRed ) {
+    runWorkspaceAsTest(RED.workspaces.active())
+/*
   } else {
     RED.notify("restarting flow", { type: "info" });
     RED.actions.invoke("core:restart-flows")
@@ -301,6 +365,7 @@ function testCurrentWorkspace() {
       RED.search.search("type:inject flow:current").map(d => d.node).forEach(d => RED.view.clickNodeButton(d))
     }, 2000)    
   }
+*/
 }
 
 function triggerInjectsInWorkspace() {
@@ -568,10 +633,11 @@ RED.actions.add("unittesting:trigger-injects-in-workspace", triggerInjectsInWork
 
 $('#node-input-unittestingpull-testresults-row').on('click', 'span.filtrg', (e) => {
   e.preventDefault();
-  if ( $(e.target).data('filter') == "") {
+  let filtervalue = $(e.target).data('filter') || $($(e.target).parent()).data('filter')
+  if (!filtervalue) {
      $('#node-input-unittestingpull-sb-target-filter').val('').trigger('keyup', { keyCode: 13}) 
   } else {
-    let newVal = `is:${$(e.target).data('filter')}`
+    let newVal = `is:${filtervalue}`
     let currVal = $('#node-input-unittestingpull-sb-target-filter').val()
 
     if ( newVal == currVal) { newVal = "" }  // toggle between filter and all
@@ -686,7 +752,7 @@ $('#node-input-unittestingselect-test-node').on('click', (e) => {
 
             <div class="form-row" style="margin-left: 10px; margin-top: 30px;">
                <button id="node-input-unittestingpull-sb-refresh-list-but"
-                        class="red-ui-button"><i class="fa fa-refresh"></i> Refresh Test List</button>
+                        class="red-ui-button"><i class="fa fa-refresh"></i></button>
                 <a id="unittesting-view-testflow-link" 
                     style="color: blue; display: none; margin-left: 20px;" 
                     target="_blank" href="">Share Testcase <i class="fa fa-external-link"></i></a>            

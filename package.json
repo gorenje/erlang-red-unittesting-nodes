@@ -32,7 +32,8 @@
       "ut-assert-values": "nodes/ut-assert-values.js",
       "ut-assert-success": "nodes/ut-assert-success.js",
       "ut-assert-status": "nodes/ut-assert-status.js",
-      "ut-assert-debug": "nodes/ut-assert-debug.js"
+      "ut-assert-debug": "nodes/ut-assert-debug.js",
+      "ut-config": "nodes/ut-config.js"
     }
   },
   

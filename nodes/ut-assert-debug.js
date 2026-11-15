@@ -68,6 +68,196 @@ module.exports = function(RED) {
   RED.nodes.registerType("ut-assert-debug", Coreut_assert_debugFunctionality);
 
   // Backend endpoints
+RED.httpAdmin.post("/UnitTesting/:flowid/testworkspace",
+  RED.auth.needsPermission("flowhub.write"),
+  (req, res) => {
+    if (req.body) {
+
+      // API defined here --> https://github.com/node-red/node-red/blob/master/packages/node_modules/%40node-red/runtime/lib/index.js
+      const runtime = require("@node-red/runtime");
+      const jsonClone = require("rfdc")();
+
+      // if a test generates an uncaught exception, then captcha that and generate
+// a failure - tests are considered failed if they generate uncaught exceptions/errors.
+let createExtraCatchNode = () => {
+  let changeId = runtime.util.generateId()
+  let assertId = runtime.util.generateId()
+  let debugId = runtime.util.generateId()
+
+  return [
+    {
+      "id": runtime.util.generateId(),
+      "type": "catch",
+      "name": "",
+      "scope": null,
+      "uncaught": true,
+      "wires": [
+        [
+          changeId
+        ]
+      ]
+    },
+    {
+      "id": changeId,
+      "type": "change",
+      "name": "",
+      "rules": [
+        {
+          "t": "set",
+          "p": "_unittest_triggered",
+          "pt": "msg",
+          "to": "true",
+          "tot": "bool"
+        }
+      ],
+      "action": "",
+      "property": "",
+      "from": "",
+      "to": "",
+      "reg": false,
+      "wires": [
+        [
+          assertId,
+          debugId
+        ]
+      ]
+    },
+    {
+      "id": debugId,
+      "type": "debug",
+      "name": "",
+      "active": true,
+      "tosidebar": false,
+      "console": true,
+      "tostatus": false,
+      "complete": "payload",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "wires": []
+    },
+    {
+      "id": assertId,
+      "type": "ut-assert-failure",
+      "name": "",
+      "wires": []
+    }
+  ]
+}
+
+let replacedPrivInFileNames = (flowdetails) => {
+  const path = require('path');
+  const runtime = require("@node-red/runtime");
+
+  let getHttpServer = (settings) => {
+    var port = settings.serverPort;
+    if (port === undefined) {
+      port = settings.uiPort;
+    }
+
+    var listenPath = 'http' + (settings.https ? 's' : '') + '://' +
+      (settings.uiHost == '::' ? 'localhost' : (settings.uiHost == '0.0.0.0' ? '127.0.0.1' : settings.uiHost)) +
+      ':' + port;
+
+    return listenPath;
+  }
+
+  let privDir = path.resolve(path.dirname(__filename), "..", "priv")
+  let httpServer = getHttpServer(runtime._.settings)
+
+  flowdetails.forEach( obj => {
+    if (obj.type == "inject") {
+      obj.props.forEach( prp => {
+        if (prp.v) prp.v = prp.v.replaceAll(/\${priv}/g, privDir).replaceAll(/\${host}/g, httpServer)
+      })
+    } else if (obj.type == "file in") {
+      if (obj.filenameType == "str" && obj.filename) obj.filename = obj.filename.replaceAll(/\${priv}/g, privDir)
+    } else if (obj.type == "http request") {
+      if (obj.url) obj.url = obj.url.replaceAll(/\${host}/g, httpServer)
+    } else if (obj.type == "change") {
+      obj.rules.forEach(prp => {
+        if (prp.tot == "str" && prp.to) {
+          prp.to = prp.to.replaceAll(/\${host}/g, httpServer).replaceAll(/\${priv}/g, privDir)
+        }
+      })
+    }
+  })
+
+  return flowdetails
+}
+
+let isErlangRedOnly = (tabDetails) => {
+  return tabDetails.env.filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
+}
+
+let isTestPending = (tabDetails) => {
+  return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
+}
+
+// chunkify an array into chunks of `size` size
+let chunkify = (array, size) => {
+  const chunkedArray = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunkedArray.push(array.slice(i, i + size));
+  }
+  return chunkedArray;
+}
+
+// respond to request with a list of total tests to be done. The frontend then
+// shows a progress indication of success / pending / failure
+let respondWithCount = (res, count) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ status: "ok", todo: count }));
+}
+
+
+      setTimeout( () => {
+        let flowDetails = req.body["flowdata"]
+
+        let origFlowId = flowDetails.filter(d => d.type == "tab")[0].id
+        let tabDetails = flowDetails.filter(d => d.type == "tab")[0]
+        let injNodesIds = flowDetails.filter(d => d.type == "inject").map(d => d.id)
+
+        if (isErlangRedOnly(tabDetails)) {
+          RED.comms.publish("unittesting:testresults", {
+            flowid: origFlowId,
+            status: "not-supported"
+          })
+          return null
+        }
+
+        flowDetails = replacedPrivInFileNames(flowDetails)
+
+        // add an catch all and trigger a assert false if any exceptions are
+        // raised by the test - if there isn't already a catch all node.
+        if (flowDetails.filter(d => d.type == "catch").filter(d => d.scope == null).length == 0) {
+          flowDetails = flowDetails.concat(createExtraCatchNode())
+        }
+
+
+        var newConfig = jsonClone(runtime._.flows.getFlows().flows);
+        newConfig = newConfig.concat(flowDetails);
+
+        runtime._.flows.removeFlow(origFlowId, "root").then(result => {
+          runtime._.flows.setFlows(newConfig, null, 'flows', false, null, "root").then((rev) => {            
+            runtime._.flows.startFlows("full", null, false, true).then(d => {
+              setTimeout(() => {
+                injNodesIds.forEach(ndeId => {
+                  RED.nodes.getNode(ndeId)?.receive({ "_unittest_triggered": true })
+                })
+              }, 200)
+            })
+          })
+        })
+      }, 10)
+
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(405);
+    }
+  }
+);
+
 RED.httpAdmin.get("/UnitTesting/:flowid/runtest",
   (req, res) => {
     const path = require('path');
@@ -147,6 +337,47 @@ let createExtraCatchNode = () => {
   ]
 }
 
+let replacedPrivInFileNames = (flowdetails) => {
+  const path = require('path');
+  const runtime = require("@node-red/runtime");
+
+  let getHttpServer = (settings) => {
+    var port = settings.serverPort;
+    if (port === undefined) {
+      port = settings.uiPort;
+    }
+
+    var listenPath = 'http' + (settings.https ? 's' : '') + '://' +
+      (settings.uiHost == '::' ? 'localhost' : (settings.uiHost == '0.0.0.0' ? '127.0.0.1' : settings.uiHost)) +
+      ':' + port;
+
+    return listenPath;
+  }
+
+  let privDir = path.resolve(path.dirname(__filename), "..", "priv")
+  let httpServer = getHttpServer(runtime._.settings)
+
+  flowdetails.forEach( obj => {
+    if (obj.type == "inject") {
+      obj.props.forEach( prp => {
+        if (prp.v) prp.v = prp.v.replaceAll(/\${priv}/g, privDir).replaceAll(/\${host}/g, httpServer)
+      })
+    } else if (obj.type == "file in") {
+      if (obj.filenameType == "str" && obj.filename) obj.filename = obj.filename.replaceAll(/\${priv}/g, privDir)
+    } else if (obj.type == "http request") {
+      if (obj.url) obj.url = obj.url.replaceAll(/\${host}/g, httpServer)
+    } else if (obj.type == "change") {
+      obj.rules.forEach(prp => {
+        if (prp.tot == "str" && prp.to) {
+          prp.to = prp.to.replaceAll(/\${host}/g, httpServer).replaceAll(/\${priv}/g, privDir)
+        }
+      })
+    }
+  })
+
+  return flowdetails
+}
+
 let isErlangRedOnly = (tabDetails) => {
   return tabDetails.env.filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
 }
@@ -185,7 +416,9 @@ let respondWithCount = (res, count) => {
 
       let allTests = [...a, ...b]
 
-      // if a limit (i.e. a list of testFlow ids) is provided, only peform those tests.
+      // if a limit (i.e. a list of testFlow ids) is provided, only perform those tests.
+      // the limit is defined when a group is tested --> only the flowids in the group
+      // are tested.
       if (req.query.limit) {
         let testIds = req.query.limit.split(",")
 
@@ -243,6 +476,8 @@ let respondWithCount = (res, count) => {
           tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach( d => {
             timeoutValues.push(parseInt(d.value) * 1000)
           })
+
+          flowDetails = replacedPrivInFileNames(flowDetails)
 
           // add an catch all and trigger a assert false if any exceptions are
           // raised by the test - if there isn't already a catch all node.
@@ -369,7 +604,9 @@ let respondWithCount = (res, count) => {
         tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach(d => {
           timeoutValues.push(parseInt(d.value) * 1000)
         })
-        
+
+        flowDetails = replacedPrivInFileNames(flowDetails)
+
         // add an catch all and trigger a assert false if any exceptions are
         // raised by the test - if there isn't already a catch all node.
         if (flowDetails.filter(d => d.type == "catch").filter(d => d.scope == null).length == 0) {
