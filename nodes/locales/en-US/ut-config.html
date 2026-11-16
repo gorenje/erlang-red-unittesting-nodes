@@ -1,0 +1,25 @@
+<script type="text/markdown" data-help-name="ut-config">
+Configuration details of the unittesting setup
+
+### Inputs
+
+: payload (any) : what is expected as payload input.
+: topic (string) : (optional) is a topic expected or handled.
+
+### Outputs
+
+: payload (any) : what is returned as payload.
+
+### Description
+
+Sets the `utcfg` object with the following values:
+```
+msg.utcfg = {
+    "priv": "", // directory containing test data for the tests
+    "host": "" // Node-RED/Erlang-Red server endpoint from within the runtime
+}
+```
+
+<!-- [Markdown documentation details](https://nodered.org/docs/creating-nodes/help-style-guide) -->
+
+</script>
