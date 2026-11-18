@@ -145,53 +145,32 @@ let createExtraCatchNode = () => {
   ]
 }
 
-let replacedPrivInFileNames = (flowdetails) => {
-  const path = require('path');
-  const runtime = require("@node-red/runtime");
 
-  let getHttpServer = (settings) => {
-    var port = settings.serverPort;
-    if (port === undefined) {
-      port = settings.uiPort;
-    }
+// Groups can be used to disable a set of nodes in a test run. These groups are marked as being not
+// for Node-RED and all nodes contained in the group are disabled before doing the test run.
+let disableNodesNotForNodeRed = (flowdefinition) => {
+  let nonNodeRedGrps = flowdefinition.filter( 
+      d => d.type == "group" && (d.env || []).filter( e => e.name =="ERED_ONLY" && (e.value == "true" || e.value == true) )[0]
+  ).map(d => d.id)
 
-    var listenPath = 'http' + (settings.https ? 's' : '') + '://' +
-      (settings.uiHost == '::' ? 'localhost' : (settings.uiHost == '0.0.0.0' ? '127.0.0.1' : settings.uiHost)) +
-      ':' + port;
-
-    return listenPath;
+  if (nonNodeRedGrps.length == 0) {
+    //nothing to do
+    return flowdefinition
+  } else {
+    return flowdefinition.map( d => {
+        d.d = (d.g && nonNodeRedGrps.indexOf(d.g) > -1)
+        return d
+    })
   }
-
-  let privDir = path.resolve(path.dirname(__filename), "..", "priv")
-  let httpServer = getHttpServer(runtime._.settings)
-
-  flowdetails.forEach( obj => {
-    if (obj.type == "inject") {
-      obj.props.forEach( prp => {
-        if (prp.v) prp.v = prp.v.replaceAll(/\${priv}/g, privDir).replaceAll(/\${host}/g, httpServer)
-      })
-    } else if (obj.type == "file in") {
-      if (obj.filenameType == "str" && obj.filename) obj.filename = obj.filename.replaceAll(/\${priv}/g, privDir)
-    } else if (obj.type == "http request") {
-      if (obj.url) obj.url = obj.url.replaceAll(/\${host}/g, httpServer)
-    } else if (obj.type == "change") {
-      obj.rules.forEach(prp => {
-        if (prp.tot == "str" && prp.to) {
-          prp.to = prp.to.replaceAll(/\${host}/g, httpServer).replaceAll(/\${priv}/g, privDir)
-        }
-      })
-    }
-  })
-
-  return flowdetails
 }
 
+// is an entire test for Erlang-Red == then ignore it.
 let isErlangRedOnly = (tabDetails) => {
-  return tabDetails.env.filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
+  return (tabDetails.env || []).filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
 }
 
 let isTestPending = (tabDetails) => {
-  return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
+  return (tabDetails.env || []).filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
 }
 
 // chunkify an array into chunks of `size` size
@@ -226,7 +205,7 @@ let respondWithCount = (res, count) => {
           return null
         }
 
-        flowDetails = replacedPrivInFileNames(flowDetails)
+        flowDetails = disableNodesNotForNodeRed(flowDetails)
 
         // add an catch all and trigger a assert false if any exceptions are
         // raised by the test - if there isn't already a catch all node.
@@ -337,53 +316,32 @@ let createExtraCatchNode = () => {
   ]
 }
 
-let replacedPrivInFileNames = (flowdetails) => {
-  const path = require('path');
-  const runtime = require("@node-red/runtime");
 
-  let getHttpServer = (settings) => {
-    var port = settings.serverPort;
-    if (port === undefined) {
-      port = settings.uiPort;
-    }
+// Groups can be used to disable a set of nodes in a test run. These groups are marked as being not
+// for Node-RED and all nodes contained in the group are disabled before doing the test run.
+let disableNodesNotForNodeRed = (flowdefinition) => {
+  let nonNodeRedGrps = flowdefinition.filter( 
+      d => d.type == "group" && (d.env || []).filter( e => e.name =="ERED_ONLY" && (e.value == "true" || e.value == true) )[0]
+  ).map(d => d.id)
 
-    var listenPath = 'http' + (settings.https ? 's' : '') + '://' +
-      (settings.uiHost == '::' ? 'localhost' : (settings.uiHost == '0.0.0.0' ? '127.0.0.1' : settings.uiHost)) +
-      ':' + port;
-
-    return listenPath;
+  if (nonNodeRedGrps.length == 0) {
+    //nothing to do
+    return flowdefinition
+  } else {
+    return flowdefinition.map( d => {
+        d.d = (d.g && nonNodeRedGrps.indexOf(d.g) > -1)
+        return d
+    })
   }
-
-  let privDir = path.resolve(path.dirname(__filename), "..", "priv")
-  let httpServer = getHttpServer(runtime._.settings)
-
-  flowdetails.forEach( obj => {
-    if (obj.type == "inject") {
-      obj.props.forEach( prp => {
-        if (prp.v) prp.v = prp.v.replaceAll(/\${priv}/g, privDir).replaceAll(/\${host}/g, httpServer)
-      })
-    } else if (obj.type == "file in") {
-      if (obj.filenameType == "str" && obj.filename) obj.filename = obj.filename.replaceAll(/\${priv}/g, privDir)
-    } else if (obj.type == "http request") {
-      if (obj.url) obj.url = obj.url.replaceAll(/\${host}/g, httpServer)
-    } else if (obj.type == "change") {
-      obj.rules.forEach(prp => {
-        if (prp.tot == "str" && prp.to) {
-          prp.to = prp.to.replaceAll(/\${host}/g, httpServer).replaceAll(/\${priv}/g, privDir)
-        }
-      })
-    }
-  })
-
-  return flowdetails
 }
 
+// is an entire test for Erlang-Red == then ignore it.
 let isErlangRedOnly = (tabDetails) => {
-  return tabDetails.env.filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
+  return (tabDetails.env || []).filter(d => d.name == "ERED_ONLY")[0]?.value == "true"
 }
 
 let isTestPending = (tabDetails) => {
-  return tabDetails.env.filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
+  return (tabDetails.env || []).filter(d => d.name == "NRED_PENDING")[0]?.value == "true"
 }
 
 // chunkify an array into chunks of `size` size
@@ -473,11 +431,11 @@ let respondWithCount = (res, count) => {
           }
 
           // compute any timeout that is defined for the flow test
-          tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach( d => {
+          (tabDetails.env || []).filter(d => d.name == "NRED_TIMEOUT").forEach( d => {
             timeoutValues.push(parseInt(d.value) * 1000)
           })
 
-          flowDetails = replacedPrivInFileNames(flowDetails)
+          flowDetails = disableNodesNotForNodeRed(flowDetails)
 
           // add an catch all and trigger a assert false if any exceptions are
           // raised by the test - if there isn't already a catch all node.
@@ -552,6 +510,8 @@ let respondWithCount = (res, count) => {
               Promise.all([removeFlow(0)]).then(() => {
                 RED.log.debug("unittest: removed all flows")
                 runTestsForFileNames(fileIdx+1)
+              }).catch(e => {
+                /* bravely go there, where no AI would - ignore the exception */
               })
             }, Math.max(...(timeoutValues.concat([5000]))))
           })
@@ -601,11 +561,11 @@ let respondWithCount = (res, count) => {
         }
 
         // compute any timeout that is defined for the flow test
-        tabDetails.env.filter(d => d.name == "NRED_TIMEOUT").forEach(d => {
+        (tabDetails.env || []).filter(d => d.name == "NRED_TIMEOUT").forEach(d => {
           timeoutValues.push(parseInt(d.value) * 1000)
         })
 
-        flowDetails = replacedPrivInFileNames(flowDetails)
+        flowDetails = disableNodesNotForNodeRed(flowDetails)
 
         // add an catch all and trigger a assert false if any exceptions are
         // raised by the test - if there isn't already a catch all node.

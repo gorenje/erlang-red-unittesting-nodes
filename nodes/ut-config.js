@@ -15,6 +15,9 @@ module.exports = function(RED) {
       const path = require('path');
       const runtime = require("@node-red/runtime");
 
+      // this is taken from the start script for Node-RED
+      // https://github.com/node-red/node-red/blob/e4f7fc516cd8da1b4b4d571169cf6937b500bb30/packages/node_modules/node-red/red.js#L466-L481
+      // and is used as basis for the getHttpServer function below.
       let getListenPath = (settings) => {
         var port = settings.serverPort;
         if (port === undefined) {
@@ -50,8 +53,8 @@ module.exports = function(RED) {
         try {
           msg.utcfg = {
             "priv": path.resolve(path.dirname(__filename), "..", "priv"),
-            // "editor": getListenPath(runtime._.settings),
-            "host": getHttpServer(runtime._.settings)
+            "host": getHttpServer(runtime._.settings),
+            "isNodeRed": true
           }
           send(msg);
           done();
